@@ -32,6 +32,16 @@ let add = fn(x, y) {	      	\
 };				\
 				\
 let result = add(five, ten);	\
+!-/*5;				\
+5 < 10 > 5;			\
+if (5 < 10) {			\
+  return true;			\
+} else {			\
+  return false;			\
+}				\
+				\
+10 == 10;			\
+10 != 9;			\
 ";
   
   test_token *tests[] = { new_test_token(TOK_LET,       "let"),
@@ -39,11 +49,13 @@ let result = add(five, ten);	\
 			  new_test_token(TOK_ASSIGN,    "="),
 			  new_test_token(TOK_INT,       "5"),
 			  new_test_token(TOK_SEMICOLON, ";"),
+			  
 			  new_test_token(TOK_LET,       "let"),
 			  new_test_token(TOK_IDENT,     "ten"),
 			  new_test_token(TOK_ASSIGN,    "="),
 			  new_test_token(TOK_INT,       "10"),
 			  new_test_token(TOK_SEMICOLON, ";"),
+			  
 			  new_test_token(TOK_LET,       "let"),
 			  new_test_token(TOK_IDENT,     "add"),
 			  new_test_token(TOK_ASSIGN,    "="),
@@ -58,8 +70,10 @@ let result = add(five, ten);	\
 			  new_test_token(TOK_PLUS,      "+"),
 			  new_test_token(TOK_IDENT,     "y"),
 			  new_test_token(TOK_SEMICOLON, ";"),
+			  
 			  new_test_token(TOK_RBRACE,    "}"),
 			  new_test_token(TOK_SEMICOLON, ";"),
+			  
 			  new_test_token(TOK_LET,       "let"),
 			  new_test_token(TOK_IDENT,     "result"),
 			  new_test_token(TOK_ASSIGN,    "="),
@@ -70,6 +84,53 @@ let result = add(five, ten);	\
   			  new_test_token(TOK_IDENT,     "ten"),
   			  new_test_token(TOK_RPAREN,    ")"),
   			  new_test_token(TOK_SEMICOLON, ";"),
+			  
+  			  new_test_token(TOK_BANG,      "!"),
+  			  new_test_token(TOK_MINUS,     "-"),
+  			  new_test_token(TOK_SLASH,     "/"),
+  			  new_test_token(TOK_ASTERISK,  "*"),
+  			  new_test_token(TOK_INT,       "5"),
+  			  new_test_token(TOK_SEMICOLON, ";"),
+			  
+  			  new_test_token(TOK_INT,       "5"),
+  			  new_test_token(TOK_LT,        "<"),
+  			  new_test_token(TOK_INT,       "10"),
+  			  new_test_token(TOK_GT,        ">"),
+  			  new_test_token(TOK_INT,       "5"),
+  			  new_test_token(TOK_SEMICOLON, ";"),
+			  
+			  new_test_token(TOK_IF,        "if"),
+			  new_test_token(TOK_LPAREN,    "("),
+			  new_test_token(TOK_INT,       "5"),
+			  new_test_token(TOK_LT,        "<"),
+			  new_test_token(TOK_INT,       "10"),
+			  new_test_token(TOK_RPAREN,    ")"),
+			  new_test_token(TOK_LBRACE,    "{"),
+  			  
+			  new_test_token(TOK_RETURN,    "return"),
+			  new_test_token(TOK_TRUE,      "true"),
+			  new_test_token(TOK_SEMICOLON, ";"),
+
+			  new_test_token(TOK_RBRACE,    "}"),
+			  new_test_token(TOK_ELSE,      "else"),
+			  new_test_token(TOK_LBRACE,    "{"),
+
+			  new_test_token(TOK_RETURN,    "return"),
+			  new_test_token(TOK_FALSE,     "false"),
+			  new_test_token(TOK_SEMICOLON, ";"),
+
+			  new_test_token(TOK_RBRACE,    "}"),
+
+			  new_test_token(TOK_INT,       "10"),
+			  new_test_token(TOK_EQ,        "=="),
+			  new_test_token(TOK_INT,       "10"),
+			  new_test_token(TOK_SEMICOLON, ";"),
+			  
+			  new_test_token(TOK_INT,       "10"),
+			  new_test_token(TOK_NOT_EQ,    "!="),
+			  new_test_token(TOK_INT,       "9"),
+			  new_test_token(TOK_SEMICOLON, ";"),
+
   			  new_test_token(TOK_EOF,       "")
                      };
   
@@ -77,14 +138,21 @@ let result = add(five, ten);	\
 
   for (int i = 0; i < LENGTH(tests); i++) {
     Token *tok = next_token_lexier(l);
+
     DEBUG_PRINT("tok->lit: %s\n", tok->lit);
-    if (tok->ty != tests[i]->expected_ty)
+    
+    if (tok->ty != tests[i]->expected_ty) {
+      DEBUG_PRINT("tok->lit: %s\n", tok->lit);
       error("tests[%d] - tokentype wrong. expected=%d, got=%d",
 	    i, tests[i]->expected_ty, tok->ty);
-
-    if (strcmp(tok->lit, tests[i]->expected_lit) != 0)
-	error("tests[%d] = literal wrong. expected=%s, got=%s",
-	      i, tests[i]->expected_lit, tok->lit);
+    }
+    
+    if (strcmp(tok->lit, tests[i]->expected_lit) != 0) {
+      DEBUG_PRINT("tok->lit: %s\n", tok->lit);
+      error("tests[%d] = literal wrong. expected=%s, got=%s",
+	    i, tests[i]->expected_lit, tok->lit);
+    }
+    
     del_token(tok);
   }
   

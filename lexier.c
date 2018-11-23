@@ -3,6 +3,8 @@
 Lexier *new_lexier(char *input) {
   Lexier *l = malloc(sizeof(Lexier));
   l->input = malloc(strlen(input)+1);
+  l->pos = 0;
+  l->rpos = 0;
   strcpy(l->input, input);
   read_char(l);
 
@@ -47,6 +49,13 @@ void skip(Lexier *l) {
     read_char(l);
 }
 
+char peek_char(Lexier *l) {
+  if (l->rpos >= strlen(l->input))
+    return 0;
+  else
+    return l->input[l->rpos];
+}
+
 Token *next_token_lexier(Lexier *l) {
   Token *tok;
 
@@ -54,7 +63,12 @@ Token *next_token_lexier(Lexier *l) {
 
   switch (l->ch) {
   case '=':
-    tok = new_token(TOK_ASSIGN, "=");
+    if (peek_char(l) == '=') {
+      read_char(l);
+      tok = new_token(TOK_EQ, "==");
+    }
+    else
+      tok = new_token(TOK_ASSIGN, "=");
     break;
   case ';':
     tok = new_token(TOK_SEMICOLON, ";");
@@ -70,6 +84,29 @@ Token *next_token_lexier(Lexier *l) {
     break;
   case '+':
     tok = new_token(TOK_PLUS, "+");
+    break;
+  case '-':
+    tok = new_token(TOK_MINUS, "-");
+    break;
+  case '!':
+    if (peek_char(l) == '=') {
+      read_char(l);
+      tok = new_token(TOK_NOT_EQ, "!=");
+    }
+    else
+      tok = new_token(TOK_BANG, "!");
+    break;
+  case '/':
+    tok = new_token(TOK_SLASH, "/");
+    break;
+  case '*':
+    tok = new_token(TOK_ASTERISK, "*");
+    break;
+  case '<':
+    tok = new_token(TOK_LT, "<");
+    break;
+  case '>':
+    tok = new_token(TOK_GT, ">");
     break;
   case '{':
     tok = new_token(TOK_LBRACE, "{");
