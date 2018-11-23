@@ -107,7 +107,7 @@ char *token_type(int ty) {
     return "ELSE";
     break;
   case TOK_RETURN:
-    return "RETUEN";
+    return "RETURN";
     break;
   case TOK_EQ:
     return "EQ";

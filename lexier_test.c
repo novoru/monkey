@@ -139,7 +139,6 @@ if (5 < 10) {			\
   for (int i = 0; i < LENGTH(tests); i++) {
     Token *tok = next_token_lexier(l);
 
-    DEBUG_PRINT("tok->lit: %s\n", tok->lit);
     
     if (tok->ty != tests[i]->expected_ty) {
       DEBUG_PRINT("tok->lit: %s\n", tok->lit);

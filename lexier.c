@@ -5,15 +5,17 @@ Lexier *new_lexier(char *input) {
   l->input = malloc(strlen(input)+1);
   l->pos = 0;
   l->rpos = 0;
+
   strcpy(l->input, input);
   read_char(l);
 
   new_keywords();
-  
+
   return l;
 }
 
 void del_lexier(Lexier *l) {
+  map_del(keywords);
   free(l->input);
   free(l);
 }
