@@ -125,10 +125,10 @@ void test_ident_expr() {
     error("ident not AST_IDENT. got=%s\n", node_type(ident->expr->ty));
   
   if (strcmp(ident->expr->name, "foobar") != 0)
-    error("ident->expr->name not 'return'. got=%s\n", ident->expr->name);
+    error("ident->expr->name not 'foobar'. got=%s\n", ident->expr->name);
     
   if (strcmp(ident->expr->token->lit, "foobar") != 0)
-    error("ident->token->lit not 'return'. got=%s\n", ident->expr->token->lit);
+    error("ident->expr->token->lit not 'foobar'. got=%s\n", ident->expr->token->lit);
   
   del_node(ident->expr);
   del_node(ident);
@@ -136,6 +136,41 @@ void test_ident_expr() {
   del_parser(p);
   del_lexier(l);
 
+}
+
+void test_int_expr() {
+  char *input = "5;";
+
+  Lexier *l = new_lexier(input);
+  Parser *p = new_parser(l);
+  Program *program = parse_program(p);
+
+  check_parser_error(p);
+
+  if (program == NULL)
+    error("parse_program(p) returned NULL\n");
+
+
+  if (program->stmts->len < 1)
+    error("program->stmts does not contain 1 statements.got=%d\n",
+	  program->stmts->len);
+
+  Node *int_lit = (Node *)program->stmts->data[0];
+    
+  if (int_lit->expr->ty != AST_INT)
+    error("int_lit not AST_INT. got=%s\n", node_type(int_lit->expr->ty));
+  
+  if (int_lit->expr->value != 5)
+    error("int_lit->expr-v>value not '5'. got=%s\n", int_lit->expr->value);
+    
+  if (strcmp(int_lit->expr->token->lit, "5") != 0)
+    error("int_lit->expr->token->lit not '5'. got=%s\n", int_lit->expr->token->lit);
+  
+  del_node(int_lit->expr);
+  del_node(int_lit);
+  del_program(program);
+  del_parser(p);
+  del_lexier(l);
 }
 
 void run_parser_test() {
@@ -146,5 +181,7 @@ void run_parser_test() {
   test_return_stmts();
   printf("- ident\n");
   test_ident_expr();
+  printf("- int\n");
+  test_int_expr();
   printf("OK\n");
 }
