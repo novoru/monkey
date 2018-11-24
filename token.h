@@ -2,6 +2,7 @@
 #define TOKEN_H
 
 #include "util.h"
+#include <stdlib.h>
 
 typedef struct Token {
   int ty;

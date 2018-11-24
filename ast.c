@@ -50,7 +50,7 @@ Node *new_return_stmt(Token *token) {
 
 Node *new_expr_stmt(Token *token, Node *expr) {
   Node *expr_stmt = malloc(sizeof(Node));
-  expr_stmt->ty = AST_EXPR;
+  expr_stmt->ty = AST_EXPR_STMT;
   expr_stmt->token = token;
   expr_stmt->expr = expr;
 

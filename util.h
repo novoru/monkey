@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdnoreturn.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define DEBUG 1

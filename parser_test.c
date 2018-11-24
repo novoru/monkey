@@ -92,7 +92,7 @@ return 993322;	   \
       error("stmt not AST_RETURN. got=%s\n", node_type(stmt->ty));
 
     if (strcmp(stmt->token->lit, "return") != 0)
-      error("stmt0>token->lit not 'return'. got=%s\n", stmt->token->lit);
+      error("stmt->token->lit not 'return'. got=%s\n", stmt->token->lit);
     
     del_node(stmt);
   }
@@ -102,11 +102,49 @@ return 993322;	   \
   
 }
 
+void test_ident_expr() {
+  char *input = "foobar;";
+
+  Lexier *l = new_lexier(input);
+  Parser *p = new_parser(l);
+  Program *program = parse_program(p);
+
+  check_parser_error(p);
+
+  if (program == NULL)
+    error("parse_program(p) returned NULL\n");
+
+
+  if (program->stmts->len < 1)
+    error("program->stmts does not contain 1 statements.got=%d\n",
+	  program->stmts->len);
+
+  Node *ident = (Node *)program->stmts->data[0];
+    
+  if (ident->expr->ty != AST_IDENT)
+    error("ident not AST_IDENT. got=%s\n", node_type(ident->expr->ty));
+  
+  if (strcmp(ident->expr->name, "foobar") != 0)
+    error("ident->expr->name not 'return'. got=%s\n", ident->expr->name);
+    
+  if (strcmp(ident->expr->token->lit, "foobar") != 0)
+    error("ident->token->lit not 'return'. got=%s\n", ident->expr->token->lit);
+  
+  del_node(ident->expr);
+  del_node(ident);
+  del_program(program);
+  del_parser(p);
+  del_lexier(l);
+
+}
+
 void run_parser_test() {
   printf("=== parser ===\n");
   printf("- let\n");
   test_let_stmts();
   printf("- return\n");
   test_return_stmts();
+  printf("- ident\n");
+  test_ident_expr();
   printf("OK\n");
 }
