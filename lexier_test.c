@@ -161,7 +161,7 @@ if (5 < 10) {			\
 }
 
 void run_lexier_test() {
-  printf("=== lexier ===\n");
+  printf("=== test lexier ===\n");
   printf("- next token\n");
   test_next_token();
   printf("OK\n");

@@ -8,7 +8,7 @@ void check_parser_error(Parser *p) {
   if (errors->len == 0)
     return;
 
-  printf("parser has %d errors", errors->len);
+  printf("parser has %d errors\n", errors->len);
 
   for (int i = 0; i < errors->len; i++) {
     printf("%s\n", (char *)errors->data[i]);
@@ -130,7 +130,7 @@ void test_ident_expr() {
   if (strcmp(ident->expr->token->lit, "foobar") != 0)
     error("ident->expr->token->lit not 'foobar'. got=%s\n", ident->expr->token->lit);
   
-  del_node(ident->expr);
+  //del_node(ident->expr);
   del_node(ident);
   del_program(program);
   del_parser(p);
@@ -139,12 +139,13 @@ void test_ident_expr() {
 }
 
 void test_int_expr() {
+  
   char *input = "5;";
-
+  
   Lexier *l = new_lexier(input);
   Parser *p = new_parser(l);
   Program *program = parse_program(p);
-
+  
   check_parser_error(p);
 
   if (program == NULL)
@@ -154,7 +155,7 @@ void test_int_expr() {
   if (program->stmts->len < 1)
     error("program->stmts does not contain 1 statements.got=%d\n",
 	  program->stmts->len);
-
+  
   Node *int_lit = (Node *)program->stmts->data[0];
     
   if (int_lit->expr->ty != AST_INT)
@@ -165,16 +166,46 @@ void test_int_expr() {
     
   if (strcmp(int_lit->expr->token->lit, "5") != 0)
     error("int_lit->expr->token->lit not '5'. got=%s\n", int_lit->expr->token->lit);
-  
-  del_node(int_lit->expr);
+ 
   del_node(int_lit);
   del_program(program);
   del_parser(p);
   del_lexier(l);
 }
 
+typedef struct pref_test {
+  char *input;
+  char *op;
+  int value;
+} pref_test;
+
+static pref_test *new_pref_test(char *input, char *op, int value) {
+  pref_test *t = malloc(sizeof(pref_test));
+  t->input = input;
+  t->op = op;
+  t->value = value;
+
+  return t;
+}
+
+void test_pref_expr() {
+  pref_test *pref_tests[] = { new_pref_test("!5;", "!", 5),
+			      new_pref_test("-15;", "-",15)
+  };
+
+  for (int i = 0; i < LENGTH(pref_tests); i++) {
+    pref_test *t = pref_tests[i];
+    Lexier *l = new_lexier(t->input);
+    Parser *p = new_parser(l);
+    Program *program = parse_program(p);
+
+    check_parser_error(p);
+  }
+  
+}
+
 void run_parser_test() {
-  printf("=== parser ===\n");
+  printf("=== test parser ===\n");
   printf("- let\n");
   test_let_stmts();
   printf("- return\n");
@@ -183,5 +214,7 @@ void run_parser_test() {
   test_ident_expr();
   printf("- int\n");
   test_int_expr();
+  printf("- prefix\n");
+  test_pref_expr();
   printf("OK\n");
 }

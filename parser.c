@@ -50,10 +50,10 @@ void del_parser(Parser *parser) {
 void next_token_parser(Parser *parser){
   parser->cur_token = parser->peek_token;
   parser->peek_token = next_token_lexier(parser->lexier);
+
 }
 
 Node *parse_stmt(Parser *parser){
-  
   switch (parser->cur_token->ty) {
   case TOK_LET:
     return parse_let_stmt(parser);
@@ -92,7 +92,6 @@ Node *parse_return_stmt(Parser *parser) {
 Node *parse_expr(Parser *parser, int precedence) {
   Node* (*pref)(Parser *) = map_get(pref_parse_funcs,
 				    token_type(parser->cur_token->ty));
-
   if (pref == NULL) {
     no_pref_parse_func_err(parser, parser->cur_token->ty);
     return NULL;
@@ -156,9 +155,7 @@ Node *parse_int_expr(Parser *parser) {
 Node *parse_pref_expr(Parser *parser) {
   Node *expr = new_pref_expr(parser->cur_token,
 			     parser->cur_token->lit);
-
   next_token_parser(parser);
-
   expr->right = parse_expr(parser, PREC_PREFIX);
 
   return expr;
@@ -200,10 +197,12 @@ Program *parse_program(Parser *parser) {
   
   while (parser->cur_token->ty != TOK_EOF) {
     stmt = parse_stmt(parser);
-    if (stmt != NULL)
+    if (stmt != NULL) 
       vec_push(program->stmts, (Node *)stmt);
     next_token_parser(parser);
   }
+  DEBUG_PRINT("%s\n", program_to_str(program));
+  
   return program;
 }
 

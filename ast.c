@@ -1,6 +1,7 @@
 #include "ast.h"
 #include "parser.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,6 +68,7 @@ Node *new_int_expr(Token *token) {
 
 Node *new_pref_expr(Token *token, char *op) {
   Node *pref_expr = malloc(sizeof(Node));
+
   pref_expr->token = token;
   pref_expr->ty = AST_PREF_EXPR;
   pref_expr->op = op;
@@ -93,10 +95,15 @@ Node *new_bool(Token *token) {
 }
 
 void del_node(Node *node) {
+  DEBUG_PRINT("%s\n", node_type(node->ty));
+  DEBUG_PRINT("%d\n", node->ty);
   if (node == NULL) return;
   switch (node->ty) {
   case AST_IDENT:
-    del_node(node->ident);
+    free(node->token);
+    break;
+  case AST_INT:
+    free(node->token);
     break;
   case AST_EXPR_STMT:
     del_node(node->expr);
@@ -180,13 +187,15 @@ char *node_to_str(Node *node) {
       return node_to_str(node->expr);
     return "";
   case AST_EXPR:
-    return NULL;
+    return "";
   case AST_PREF_EXPR:
     return format("(%s%s)", node->op, node_to_str(node->right));
   case AST_INF_EXPR:
     return format("(%s %s %s)",node_to_str(node->left), node->op, node_to_str(node->right));
   case AST_BOOL:
     return node->token->lit;
+  case AST_INT:
+    return format("%d", node->value);
   }
   
   return NULL;
