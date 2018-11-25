@@ -68,9 +68,8 @@ Node *new_int_expr(Token *token) {
 
 Node *new_pref_expr(Token *token, char *op) {
   Node *pref_expr = malloc(sizeof(Node));
-
-  pref_expr->token = token;
   pref_expr->ty = AST_PREF_EXPR;
+  pref_expr->token = token;
   pref_expr->op = op;
   
   return pref_expr;
@@ -78,8 +77,8 @@ Node *new_pref_expr(Token *token, char *op) {
 
 Node *new_inf_expr(Token *token, char *op, Node *left) {
   Node *inf_expr = malloc(sizeof(Node));
-  inf_expr->token = token;
   inf_expr->ty = AST_INF_EXPR;
+  inf_expr->token = token;
   inf_expr->op = op;
   inf_expr->left = left;
 
@@ -92,6 +91,23 @@ Node *new_bool(Token *token) {
   boolean->token = token;
 
   return boolean;
+}
+
+Node *new_if_expr(Token *token) {
+  Node *if_expr = malloc(sizeof(Node));
+  if_expr->ty = AST_IF_EXPR;
+  if_expr->token = token;
+  
+  return if_expr;
+}
+
+Node *new_block_stmt(Token *token) {
+  Node *block_stmt = malloc(sizeof(Node));
+  block_stmt->ty = AST_BLOCK_STMT;
+  block_stmt->token = token;
+  block_stmt->stmts = new_vector();
+
+  return block_stmt;
 }
 
 void del_node(Node *node) {
@@ -192,6 +208,28 @@ char *node_to_str(Node *node) {
     return node->token->lit;
   case AST_INT:
     return format("%d", node->value);
+  case AST_IF_EXPR:
+    str = malloc(strlen(node->token->lit) +
+		 strlen(node_to_str(node->cond)) +
+		 strlen(node_to_str(node->conseq)) + 2);
+    strcpy(str, node->token->lit);
+    strcat(str, node_to_str(node->cond));
+    strcat(str, " ");
+    strcat(str, node_to_str(node->conseq));
+
+    if (node->alter != NULL) {
+      str = realloc(str, strlen(str) + strlen("else ") + strlen(node_to_str(node->alter)));
+      strcat(str, "else ");
+      strcat(str, node_to_str(node->alter));
+    }
+    return str;
+  case AST_BLOCK_STMT:
+    for (int i = 0; i < node->stmts->len; i++) {
+      char *tmp = (char *)node->stmts->data[i];
+      str = realloc(str, strlen(tmp));
+      strcat(str, tmp);
+    }
+    return str;
   }
   
   return NULL;
@@ -219,5 +257,9 @@ char *node_type(int ty) {
     return "AST_INF_EXPR";
   case AST_BOOL:
     return "AST_BOOL";
+  case AST_IF_EXPR:
+    return "AST_IF_EXPR";
+  case AST_BLOCK_STMT:
+    return "AST_BLOCK_STMT";
   }
 }

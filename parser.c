@@ -16,13 +16,14 @@ Parser *new_parser(Lexier *l) {
   new_precedences();
   
   pref_parse_funcs = new_map();
-  register_pref(TOK_IDENT, parse_ident);
-  register_pref(TOK_INT,   parse_int_expr);
-  register_pref(TOK_BANG,  parse_pref_expr);
-  register_pref(TOK_MINUS, parse_pref_expr);
-  register_pref(TOK_TRUE,  parse_boolean);
-  register_pref(TOK_FALSE, parse_boolean);  
+  register_pref(TOK_IDENT,  parse_ident);
+  register_pref(TOK_INT,    parse_int_expr);
+  register_pref(TOK_BANG,   parse_pref_expr);
+  register_pref(TOK_MINUS,  parse_pref_expr);
+  register_pref(TOK_TRUE,   parse_boolean);
+  register_pref(TOK_FALSE,  parse_boolean);  
   register_pref(TOK_LPAREN, parse_grouped_expr);
+  register_pref(TOK_IF,     parse_if_expr);
   
   inf_parse_funcs = new_map();
   register_inf(TOK_PLUS,     parse_inf_expr);
@@ -182,12 +183,47 @@ Node *parse_boolean(Parser *parser) {
 Node *parse_grouped_expr(Parser *parser) {
   next_token_parser(parser);
 
-  Node *exp = parse_expr(parser, PREC_LOWEST);
+  Node *expr = parse_expr(parser, PREC_LOWEST);
 
   if (!expect_peek(parser, TOK_RPAREN))
     return NULL;
 
-  return exp;
+  return expr;
+}
+
+Node *parse_if_expr(Parser *parser) {
+  Node *expr = new_if_expr(parser->cur_token);
+  if (!expect_peek(parser, TOK_LPAREN))
+    return NULL;
+
+  next_token_parser(parser);
+  expr->cond = parse_expr(parser, PREC_LOWEST);
+
+  if (!expect_peek(parser, TOK_RPAREN))
+    return NULL;
+
+  if (!expect_peek(parser, TOK_LBRACE))
+    return NULL;
+
+  expr->conseq = parse_block_stmt(parser);
+  
+  return expr;
+}
+
+Node *parse_block_stmt(Parser *parser) {
+  Node *block = new_block_stmt(parser->cur_token);
+
+  next_token_parser(parser);
+
+  while(!cur_token_is(parser, TOK_RBRACE) && !cur_token_is(parser, TOK_EOF)) {
+    Node *stmt = parse_stmt(parser);
+    if (stmt != NULL)
+      vec_push(block->stmts, (void *)stmt);
+    next_token_parser(parser);
+  }
+
+  return block;
+    
 }
 
 Program *parse_program(Parser *parser) {

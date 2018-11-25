@@ -517,6 +517,109 @@ void test_op_prec_parsing() {
 
 }
 
+void test_if_expr() {
+  char *input = "if (x < y) { x }";
+  Lexier *l = new_lexier(input);
+  Parser *p = new_parser(l);
+  Program *program = parse_program(p);
+
+  check_parser_error(p);
+
+  if (program == NULL)
+    error("parse_program(p) returned NULL\n");
+    
+  if (program->stmts->len != 1)
+    error("program->stmts does not contain 1 statements.got=%d\n",
+	  program->stmts->len);
+    
+  Node *stmt = (Node *)program->stmts->data[0];
+  Node *expr = stmt->expr;
+    
+  if (expr->ty != AST_IF_EXPR)
+    error("expr->ty not AST_IF_EXPR. got=%s\n", node_type(expr->ty));
+
+  if ( test_inf_expr(expr->cond,
+		     "x", TYPENAME_POINTER_TO_CHAR,
+		     "<",
+		     "y", TYPENAME_POINTER_TO_CHAR)
+       )
+    return;
+
+  if (expr->conseq->stmts->len != 1)
+    error("consequences is not 1 statements. got=%d\n", expr->conseq->stmts->len);
+
+  Node *conseq = (Node *)expr->conseq->stmts->data[0];
+
+  if (conseq->ty != AST_EXPR_STMT)
+    error("expe->conseq->stmts->data[0] is not AST_EXPR_STMT. got=%s\n", node_type(conseq->ty));
+
+  if (test_ident(conseq->expr, "x"))
+    return;
+
+  if (expr->alter != NULL)
+    error("expr->alter was not NULL.\n");
+  
+  del_node(expr);
+  del_program(program);
+  del_parser(p);
+  del_lexier(l);
+
+}
+
+void test_if_else_expr() {
+  char *input = "if (x < y) { x } else { y }";
+  Lexier *l = new_lexier(input);
+  Parser *p = new_parser(l);
+  Program *program = parse_program(p);
+
+  check_parser_error(p);
+
+  if (program == NULL)
+    error("parse_program(p) returned NULL\n");
+    
+  if (program->stmts->len != 1)
+    error("program->stmts does not contain 1 statements.got=%d\n",
+	  program->stmts->len);
+    
+  Node *stmt = (Node *)program->stmts->data[0];
+  Node *expr = stmt->expr;
+    
+  if (expr->ty != AST_IF_EXPR)
+    error("expr->ty not AST_IF_EXPR. got=%s\n", node_type(expr->ty));
+
+  if ( test_inf_expr(expr->cond,
+		     "x", TYPENAME_POINTER_TO_CHAR,
+		     "<",
+		     "y", TYPENAME_POINTER_TO_CHAR)
+       )
+    return;
+
+  if (expr->conseq->stmts->len != 1)
+    error("consequences is not 1 statements. got=%d\n", expr->conseq->stmts->len);
+
+  Node *conseq = (Node *)expr->conseq->stmts->data[0];
+
+  if (conseq->ty != AST_EXPR_STMT)
+    error("expr->conseq->stmts->data[0] is not AST_EXPR_STMT. got=%s\n", node_type(conseq->ty));
+
+  if (test_ident(conseq->expr, "x"))
+    return;
+
+  Node *alter = (Node *)expr->alter->stmts->data[0];
+
+  if (alter->ty != AST_EXPR_STMT)
+    error("expr->alter->stmts->data[0] is not AST_EXPR_STMT. got=%s\n", node_type(alter->ty));
+  
+  if (test_ident(alter->expr, "y"))
+    return;
+
+  del_node(expr);
+  del_program(program);
+  del_parser(p);
+  del_lexier(l);
+
+}
+
 void run_parser_test() {
   printf("=== test parser ===\n");
   printf("- let\n");
@@ -535,5 +638,9 @@ void run_parser_test() {
   test_bool_expr();
   printf("- operator precedence\n");
   test_op_prec_parsing();
+  printf("- if\n");
+  test_if_expr();
+  printf("- if else\n");
+  test_if_else_expr();
   printf("OK\n");
 }

@@ -15,6 +15,8 @@ enum {
       AST_PREF_EXPR,  // prefix expression
       AST_INF_EXPR,   // infix expression
       AST_BOOL,       // boolean
+      AST_IF_EXPR,    // if expression
+      AST_BLOCK_STMT, // block statement
 };
 
 typedef struct Node {
@@ -28,6 +30,10 @@ typedef struct Node {
   struct Node *left;    // left hand side
   struct Node *right;   // right hand side
   _Bool bool;           // True:1 or False:0
+  struct Node *cond;    // condition
+  struct Node *conseq;  // concequence
+  struct Node *alter;   // alternative
+  Vector *stmts;        // statements of block statement
 } Node;
 
 typedef struct {
@@ -44,6 +50,8 @@ Node *new_int_expr(Token *token);
 Node *new_pref_expr(Token *token, char *op);
 Node *new_inf_expr(Token *token, char *op, Node *left);
 Node *new_bool(Token *token);
+Node *new_if_expr(Token *token);
+Node *new_block_stmt(Token *token);
 void del_node(Node *node);
 Program *new_program();
 void del_program(Program *program);
