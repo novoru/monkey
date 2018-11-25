@@ -206,6 +206,15 @@ Node *parse_if_expr(Parser *parser) {
     return NULL;
 
   expr->conseq = parse_block_stmt(parser);
+
+  if (peek_token_is(parser, TOK_ELSE)) {
+    next_token_parser(parser);
+
+    if (!expect_peek(parser, TOK_LBRACE))
+      return NULL;
+
+    expr->alter = parse_block_stmt(parser);
+  }
   
   return expr;
 }
