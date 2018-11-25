@@ -260,7 +260,7 @@ _Bool cur_token_is(Parser *parser, int ty) {
 }
 
 _Bool peek_token_is(Parser *parser, int ty) {
-  return parser->peek_token->ty = ty;
+  return parser->peek_token->ty == ty;
 }
 
 _Bool expect_peek(Parser *parser, int ty) {
@@ -270,14 +270,6 @@ _Bool expect_peek(Parser *parser, int ty) {
   }
   else
     return false;
-}
-
-Node *pref_parse_func() {
-  return NULL;
-}
-
-Node *inf_parse_func(Node *expr) {
-  return NULL;
 }
 
 void register_pref(int ty, void(*func)) {

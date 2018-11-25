@@ -168,28 +168,28 @@ char *node_to_str(Node *node) {
   case AST_IDENT:
     return node->name;
   case AST_LET:
-    str = malloc(sizeof(node->token->lit)+2);
+    str = malloc(strlen(node->token->lit)+2);
     strcpy(str, node->token->lit);
     strcat(str, " ");
     if (node->ident != NULL) {
-      str = realloc(str, sizeof(str)+sizeof(node->ident->name)+3);
+      str = realloc(str, strlen(str)+strlen(node->ident->name)+3);
       strcat(str, node->ident->name);
       strcat(str, " = ");
     }
     if (node->expr != NULL) {
       char *tmp = node_to_str(node->expr);
-      str = realloc(str, sizeof(str)+sizeof(tmp));
+      str = realloc(str, strlen(str)+strlen(tmp));
       strcat(str, tmp);
     }
     strcat(str, ";");
     return str;
   case AST_RETURN:
-    str = malloc(sizeof(node->token->lit)+2);
+    str = malloc(strlen(node->token->lit)+2);
     strcpy(str, node->token->lit);
     strcat(str, " ");
      if (node->expr != NULL) {
       char *tmp = node_to_str(node->expr);
-      str = realloc(str, sizeof(str)+sizeof(tmp));
+      str = realloc(str, strlen(str)+strlen(tmp));
       strcat(str, tmp);
     }
     strcat(str, ";");
@@ -209,26 +209,21 @@ char *node_to_str(Node *node) {
   case AST_INT:
     return format("%d", node->value);
   case AST_IF_EXPR:
-    str = malloc(strlen(node->token->lit) +
-		 strlen(node_to_str(node->cond)) +
-		 strlen(node_to_str(node->conseq)) + 2);
-    strcpy(str, node->token->lit);
-    strcat(str, node_to_str(node->cond));
-    strcat(str, " ");
-    strcat(str, node_to_str(node->conseq));
-
+    str = format("%s %s %s",
+		 node->token->lit, node_to_str(node->cond), node_to_str(node->conseq));
+    
     if (node->alter != NULL) {
-      str = realloc(str, strlen(str) + strlen("else ") + strlen(node_to_str(node->alter)));
-      strcat(str, "else ");
-      strcat(str, node_to_str(node->alter));
+      str = format("%s %s %s", str, "else", node_to_str(node->alter));
     }
     return str;
   case AST_BLOCK_STMT:
+    str = format("{");
     for (int i = 0; i < node->stmts->len; i++) {
-      char *tmp = (char *)node->stmts->data[i];
-      str = realloc(str, strlen(tmp));
-      strcat(str, tmp);
+      char *tmp = (char *)node_to_str(node->stmts->data[i]);
+      str = format("%s %s", str, tmp);
     }
+    str = format("%s %s", str, "}");
+    
     return str;
   }
   

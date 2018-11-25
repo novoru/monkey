@@ -53,9 +53,6 @@ _Bool cur_token_is(Parser *parser, int ty);
 _Bool peek_token_is(Parser *parser, int ty);
 _Bool expect_peek(Parser *parser, int ty);
 
-Node *pref_parse_func();
-Node *inf_parse_func(Node *expr);
-
 void register_pref(int ty, void(*func));
 void register_inf(int ty, void(*func));
 void no_pref_parse_func_err(Parser *parser, int ty);
