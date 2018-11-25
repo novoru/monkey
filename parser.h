@@ -45,8 +45,11 @@ Node *parse_inf_expr(Parser *parser, Node *left);
 Node *parse_boolean(Parser *parser);
 Node *parse_grouped_expr(Parser *parser);
 Program *parse_program(Parser *parser);
-int expect_peek(Parser *parser, int ty);
 void peek_error(Parser *parser, int ty);
+
+_Bool cur_token_is(Parser *parser, int ty);
+_Bool peek_token_is(Parser *parser, int ty);
+_Bool expect_peek(Parser *parser, int ty);
 
 Node *pref_parse_func();
 Node *inf_parse_func(Node *expr);

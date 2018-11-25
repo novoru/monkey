@@ -78,6 +78,7 @@ void *map_get(Map *map, char *key) {
     if (strcmp(map->keys->data[i], key) == 0)
       return map->vals->data[i];
   }
+
   return NULL;
 }
 

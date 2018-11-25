@@ -98,14 +98,13 @@ Node *parse_expr(Parser *parser, int precedence) {
   }
 
   Node *left = (Node *)pref(parser);
-
+  
   while ((parser->peek_token->ty != TOK_SEMICOLON) &&
 	 (precedence < peek_precedence(parser))) {
     Node* (*infix)(Parser *, Node *) = map_get(inf_parse_funcs,
 					       token_type(parser->peek_token->ty));
-    if (infix == NULL) {
+    if (infix == NULL)
       return left;
-    }
 
     next_token_parser(parser);
 
@@ -183,12 +182,12 @@ Node *parse_boolean(Parser *parser) {
 Node *parse_grouped_expr(Parser *parser) {
   next_token_parser(parser);
 
-  Node *expr = parse_expr(parser, PREC_LOWEST);
+  Node *exp = parse_expr(parser, PREC_LOWEST);
 
-  if ( parser->peek_token->ty != TOK_RPAREN)
+  if (!expect_peek(parser, TOK_RPAREN))
     return NULL;
 
-  return expr;
+  return exp;
 }
 
 Program *parse_program(Parser *parser) {
@@ -201,26 +200,31 @@ Program *parse_program(Parser *parser) {
       vec_push(program->stmts, (Node *)stmt);
     next_token_parser(parser);
   }
-  DEBUG_PRINT("%s\n", program_to_str(program));
   
   return program;
-}
-
-int expect_peek(Parser *parser, int ty) {
-  if (parser->peek_token->ty == ty) {
-    next_token_parser(parser);
-    return 1;
-  }
-  else {
-    peek_error(parser, ty);
-    return 0;
-  }
 }
 
 void peek_error(Parser *parser, int ty) {
   char *err = format("expected next token to be %s, got %s instead",
 		     token_type(ty), token_type(parser->peek_token->ty));
   vec_push(parser->errors, err);
+}
+
+_Bool cur_token_is(Parser *parser, int ty) {
+  return parser->cur_token->ty == ty;
+}
+
+_Bool peek_token_is(Parser *parser, int ty) {
+  return parser->peek_token->ty = ty;
+}
+
+_Bool expect_peek(Parser *parser, int ty) {
+  if (peek_token_is(parser, ty)) {
+    next_token_parser(parser);
+    return true;
+  }
+  else
+    return false;
 }
 
 Node *pref_parse_func() {

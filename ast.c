@@ -137,7 +137,7 @@ char *program_to_str(Program *program) {
 
   for(int i = 1;i < program->stmts->len; i++) {
     tmp = node_to_str((Node *)program->stmts->data[i]);
-    str = realloc(str, sizeof(str)+sizeof(tmp));
+    str = realloc(str, strlen(str) * sizeof(char) + strlen(tmp) * sizeof(char));
     strcat(str, tmp);
   }
 
