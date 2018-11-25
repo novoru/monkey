@@ -95,15 +95,11 @@ Node *new_bool(Token *token) {
 }
 
 void del_node(Node *node) {
-  DEBUG_PRINT("%s\n", node_type(node->ty));
-  DEBUG_PRINT("%d\n", node->ty);
   if (node == NULL) return;
   switch (node->ty) {
   case AST_IDENT:
-    free(node->token);
     break;
   case AST_INT:
-    free(node->token);
     break;
   case AST_EXPR_STMT:
     del_node(node->expr);

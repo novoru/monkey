@@ -36,6 +36,26 @@ _Bool test_let_stmt(Node *s, char *name) {
   return 1;
 }
 
+_Bool test_int_lit(Node *il, int value) {
+  if (il->ty != AST_INT) {
+    printf("il not AST_INT. got=%s\n", node_type(il->ty));
+    return 0;
+  }
+
+  if (il->value != value) {
+    printf("il->value not %d. got=%d\n", value, il->value);
+    return 0;
+  }
+
+  if (strcmp(il->token->lit, format("%d", value)) != 0) {
+    printf("il->token->lit not %d. got=%s\n", value, il->token->lit);
+    return 0;
+  }
+
+  return 1;
+  
+}
+
 void test_let_stmts() {
   char *input = "   \
 let x = 5;	    \
@@ -130,7 +150,6 @@ void test_ident_expr() {
   if (strcmp(ident->expr->token->lit, "foobar") != 0)
     error("ident->expr->token->lit not 'foobar'. got=%s\n", ident->expr->token->lit);
   
-  //del_node(ident->expr);
   del_node(ident);
   del_program(program);
   del_parser(p);
@@ -200,7 +219,101 @@ void test_pref_expr() {
     Program *program = parse_program(p);
 
     check_parser_error(p);
+
+    if (program == NULL)
+      error("parse_program(p) returned NULL\n");
+    
+    
+    if (program->stmts->len < 1)
+      error("program->stmts does not contain 1 statements.got=%d\n",
+	    program->stmts->len);
+    
+    Node *exp = (Node *)program->stmts->data[0];
+    Node *expr = exp->expr;
+    
+    if (expr->ty != AST_PREF_EXPR)
+      error("expr->ty not AST_PREF_EXPR. got=%s\n", node_type(expr->ty));
+    
+    if (strcmp(expr->op, t->op) != 0)
+      error("expr->op not '%s'. got=%s\n", t->op, expr->op);
+
+    if (!test_int_lit(expr->right, t->value))
+      exit(1);
+    
+    del_node(expr);
+    del_program(program);
+    del_parser(p);
+    del_lexier(l);
+  
   }
+  
+}
+
+typedef struct inf_test {
+  char *input;
+  int left;
+  char *op;
+  int right;
+} inf_test;
+
+inf_test *new_inf_test(char *input, int left, char *op, int right) {
+  inf_test *t = malloc(sizeof(inf_test));
+  t->input = input;
+  t->left = left;
+  t->op = op;
+  t->right = right;
+  
+  return t;
+}
+
+void test_inf_expr() {
+  inf_test *inf_tests[] = { new_inf_test("5 + 5;",  5, "+", 5),
+			    new_inf_test("5 - 5;",  5, "-", 5),
+			    new_inf_test("5 * 5;",  5, "*", 5),
+			    new_inf_test("5 / 5;",  5, "/", 5),
+			    new_inf_test("5 > 5;",  5, ">", 5),
+			    new_inf_test("5 < 5;",  5, "<", 5),
+			    new_inf_test("5 == 5;", 5, "==", 5),
+			    new_inf_test("5 != 5;", 5, "!=", 5),
+  };
+
+  for (int i = 0; i < LENGTH(inf_tests); i++) {
+    inf_test *t = inf_tests[i];
+    Lexier *l = new_lexier(t->input);
+    Parser *p = new_parser(l);
+    Program *program = parse_program(p);
+
+    check_parser_error(p);
+
+    if (program == NULL)
+      error("parse_program(p) returned NULL\n");
+    
+    
+    if (program->stmts->len < 1)
+      error("program->stmts does not contain 1 statements.got=%d\n",
+	    program->stmts->len);
+    
+    Node *exp = (Node *)program->stmts->data[0];
+    Node *expr = exp->expr;
+    
+    if (expr->ty != AST_INF_EXPR)
+      error("expr->ty not AST_INF_EXPR. got=%s\n", node_type(expr->ty));
+
+    if (!test_int_lit(expr->left, t->left))
+      exit(1);
+    
+    if (strcmp(expr->op, t->op) != 0)
+      error("expr->op not '%s'. got=%s\n", t->op, expr->op);
+
+    if (!test_int_lit(expr->right, t->right))
+      exit(1);
+    
+    del_node(expr);
+    del_program(program);
+    del_parser(p);
+    del_lexier(l);
+  
+  }  
   
 }
 
@@ -216,5 +329,7 @@ void run_parser_test() {
   test_int_expr();
   printf("- prefix\n");
   test_pref_expr();
+  printf("- infix\n");
+  test_inf_expr();
   printf("OK\n");
 }
