@@ -46,6 +46,8 @@ Node *parse_boolean(Parser *parser);
 Node *parse_grouped_expr(Parser *parser);
 Node *parse_if_expr(Parser *parser);
 Node *parse_block_stmt(Parser *parser);
+Node *parse_func(Parser *parser);
+Vector *parse_func_params(Parser *parser);
 Program *parse_program(Parser *parser);
 void peek_error(Parser *parser, int ty);
 

@@ -13,7 +13,7 @@ void check_parser_error(Parser *p) {
   for (int i = 0; i < errors->len; i++) {
     printf("%s\n", (char *)errors->data[i]);
   }
-  exit(1);
+  exit(EXIT_FAILURE);
 }
 
 _Bool test_let_stmt(Node *s, char *name) {
@@ -316,7 +316,7 @@ void test_pref_expr() {
       error("expr->op not '%s'. got=%s\n", t->op, expr->op);
 
     if (!test_int_lit(expr->right, t->value))
-      exit(1);
+      exit(EXIT_FAILURE);
     
     del_node(expr);
     del_program(program);
@@ -391,7 +391,7 @@ void test_parse_inf_exprs() {
 		       t->left,  t->ty_left,
 		       t->op,
 		       t->right, t->ty_right))
-      exit(1);
+      exit(EXIT_FAILURE);
     
     del_node(expr);
     del_program(program);
@@ -620,6 +620,53 @@ void test_if_else_expr() {
 
 }
 
+void test_func_lit_parsing() {
+
+  char *input = "fn(x, y) { x + y;}";
+  Lexier *l = new_lexier(input);
+  Parser *p = new_parser(l);
+  Program *program = parse_program(p);
+
+  check_parser_error(p);
+
+  if (program == NULL)
+    error("parse_program(p) returned NULL\n");
+    
+  if (program->stmts->len != 1)
+    error("program->stmts does not contain 1 statements.got=%d\n",
+	  program->stmts->len);
+
+  Node *stmt = (Node *)program->stmts->data[0];
+  
+  if (stmt->ty != AST_EXPR_STMT)
+    error("program->stmts->data[0] is not AST_EXPR_STMT. got=%s\n", node_type(stmt->ty));
+
+  Node *func = (Node *)stmt->expr;
+
+  if (func->ty != AST_FUNCTION)
+    error("stmt->expr is not AST_FUNCTION. got=%s\n", node_type(func->ty));
+
+  if (func->params->len != 2)
+    error("function literal parameters wrong. want 2, got=%d\n", func->params->len);
+
+  test_lit_expr((Node *)func->params->data[0], "x", TYPENAME_POINTER_TO_CHAR);
+  test_lit_expr((Node *)func->params->data[1], "y", TYPENAME_POINTER_TO_CHAR);
+
+  if (func->body->stmts->len != 1)
+    error("func->body->stmts->len has not 1 statements. got=%d\n", func->body->stmts->len);
+
+  Node *body_stmt = (Node *)func->body->stmts->data[0];
+
+  if (body_stmt->ty != AST_EXPR_STMT)
+    error("function body stmt is not AST_EXPR_STMT. got=%s\n", node_type(body_stmt->ty));
+
+  test_inf_expr(body_stmt->expr,
+		"x", TYPENAME_POINTER_TO_CHAR,
+		"+",
+		"y", TYPENAME_POINTER_TO_CHAR);
+
+}
+
 void run_parser_test() {
   printf("=== test parser ===\n");
   printf("- let\n");
@@ -642,5 +689,7 @@ void run_parser_test() {
   test_if_expr();
   printf("- if else\n");
   test_if_else_expr();
+  printf("- function\n");
+  test_func_lit_parsing();
   printf("OK\n");
 }

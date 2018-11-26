@@ -16,25 +16,25 @@ Parser *new_parser(Lexier *l) {
   new_precedences();
   
   pref_parse_funcs = new_map();
-  register_pref(TOK_IDENT,  parse_ident);
-  register_pref(TOK_INT,    parse_int_expr);
-  register_pref(TOK_BANG,   parse_pref_expr);
-  register_pref(TOK_MINUS,  parse_pref_expr);
-  register_pref(TOK_TRUE,   parse_boolean);
-  register_pref(TOK_FALSE,  parse_boolean);  
-  register_pref(TOK_LPAREN, parse_grouped_expr);
-  register_pref(TOK_IF,     parse_if_expr);
+  register_pref(TOK_IDENT,    parse_ident);
+  register_pref(TOK_INT,      parse_int_expr);
+  register_pref(TOK_BANG,     parse_pref_expr);
+  register_pref(TOK_MINUS,    parse_pref_expr);
+  register_pref(TOK_TRUE,     parse_boolean);
+  register_pref(TOK_FALSE,    parse_boolean);  
+  register_pref(TOK_LPAREN,   parse_grouped_expr);
+  register_pref(TOK_IF,       parse_if_expr);
+  register_pref(TOK_FUNCTION, parse_func);
   
   inf_parse_funcs = new_map();
-  register_inf(TOK_PLUS,     parse_inf_expr);
-  register_inf(TOK_MINUS,    parse_inf_expr);
-  register_inf(TOK_SLASH,    parse_inf_expr);
-  register_inf(TOK_ASTERISK, parse_inf_expr);
-  register_inf(TOK_EQ,       parse_inf_expr);
-  register_inf(TOK_NOT_EQ,   parse_inf_expr);
-  register_inf(TOK_LT,       parse_inf_expr);
-  register_inf(TOK_GT,       parse_inf_expr);
-  
+  register_inf(TOK_PLUS,      parse_inf_expr);
+  register_inf(TOK_MINUS,     parse_inf_expr);
+  register_inf(TOK_SLASH,     parse_inf_expr);
+  register_inf(TOK_ASTERISK,  parse_inf_expr);
+  register_inf(TOK_EQ,        parse_inf_expr);
+  register_inf(TOK_NOT_EQ,    parse_inf_expr);
+  register_inf(TOK_LT,        parse_inf_expr);
+  register_inf(TOK_GT,        parse_inf_expr);
   
   return parser;
 }
@@ -233,6 +233,48 @@ Node *parse_block_stmt(Parser *parser) {
 
   return block;
     
+}
+
+Node *parse_func(Parser *parser) {
+  Node *func = new_func(parser->cur_token);
+
+  if (!expect_peek(parser, TOK_LPAREN))
+    return NULL;
+
+  func->params = parse_func_params(parser);
+
+  if (!expect_peek(parser, TOK_LBRACE))
+    return NULL;
+
+  func->body = parse_block_stmt(parser);
+
+  return func;
+}
+
+Vector *parse_func_params(Parser *parser) {
+  Vector *params = new_vector();
+
+  if (peek_token_is(parser, TOK_RPAREN)) {
+    next_token_parser(parser);
+    return params;
+  }
+
+  next_token_parser(parser);
+
+  Node *param = new_ident(parser->cur_token);
+  vec_push(params, (void *)param);
+
+  while (peek_token_is(parser, TOK_COMMA)) {
+    next_token_parser(parser);
+    next_token_parser(parser);
+    param = new_ident(parser->cur_token);
+    vec_push(params, (void *)param);
+  }
+
+  if (!expect_peek(parser, TOK_RPAREN))
+    return NULL;
+
+  return params;
 }
 
 Program *parse_program(Parser *parser) {

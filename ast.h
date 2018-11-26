@@ -17,6 +17,7 @@ enum {
       AST_BOOL,       // boolean
       AST_IF_EXPR,    // if expression
       AST_BLOCK_STMT, // block statement
+      AST_FUNCTION,   // function literal
 };
 
 typedef struct Node {
@@ -34,6 +35,8 @@ typedef struct Node {
   struct Node *conseq;  // concequence
   struct Node *alter;   // alternative
   Vector *stmts;        // statements of block statement
+  Vector *params;       // parameters of function
+  struct Node *body;           // body of function
 } Node;
 
 typedef struct {
@@ -52,6 +55,7 @@ Node *new_inf_expr(Token *token, char *op, Node *left);
 Node *new_bool(Token *token);
 Node *new_if_expr(Token *token);
 Node *new_block_stmt(Token *token);
+Node *new_func(Token *token);
 void del_node(Node *node);
 Program *new_program();
 void del_program(Program *program);
