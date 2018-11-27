@@ -667,6 +667,58 @@ void test_func_lit_parsing() {
 
 }
 
+typedef struct func_param_test {
+  char *input;
+  Vector *expected;
+} func_param_test;
+
+func_param_test *new_func_param_test(char *input, char *expected[], int len) {
+  func_param_test *t = malloc(sizeof(func_param_test));
+  t->input = input;
+  t->expected = new_vector();
+
+  int count = 0;
+  for (int i = 0; i < len; i++){
+    if (expected[i] == NULL) return t;
+    vec_push(t->expected, (void *)expected[i]);
+    count++;
+  }
+  
+  return t;
+}
+
+void test_func_param_parsing() {
+  char *ex1[1] = {};
+  char *ex2[1] = {"x"};
+  char *ex3[3] = {"x", "y", "z"};
+  
+  func_param_test *tests[] = { new_func_param_test("fn() {};",        ex1, LENGTH(ex1)),
+			       new_func_param_test("fn(x) {};",       ex2, LENGTH(ex2)),
+			       new_func_param_test("fn(x, y, z) {};", ex3, LENGTH(ex3))
+  };
+
+  for (int i = 0; i < LENGTH(tests); i++) {
+    Lexier *l = new_lexier(tests[i]->input);
+    Parser *p = new_parser(l);
+    Program *program = parse_program(p);
+
+    check_parser_error(p);
+    
+    Node *stmt = (Node *)program->stmts->data[0];
+    Node *func = stmt->expr;
+    Vector *expected = tests[i]->expected;
+    if (func->params->len != expected->len)
+      error("length parameters wrong. want %d, got=%d\n", expected->len, func->params->len);
+
+    for (int j = 0; j < func->params->len; j++) {
+      test_lit_expr(func->params->data[j], (void *)expected->data[j], TYPENAME_POINTER_TO_CHAR);
+    }
+    
+  }
+  
+}
+
+
 void run_parser_test() {
   printf("=== test parser ===\n");
   printf("- let\n");
@@ -691,5 +743,7 @@ void run_parser_test() {
   test_if_else_expr();
   printf("- function\n");
   test_func_lit_parsing();
+  printf("- function parameters\n");
+  test_func_param_parsing();
   printf("OK\n");
 }
