@@ -35,6 +35,7 @@ Parser *new_parser(Lexier *l) {
   register_inf(TOK_NOT_EQ,    parse_inf_expr);
   register_inf(TOK_LT,        parse_inf_expr);
   register_inf(TOK_GT,        parse_inf_expr);
+  register_inf(TOK_LPAREN,    parse_call_expr);
   
   return parser;
 }
@@ -277,6 +278,37 @@ Vector *parse_func_params(Parser *parser) {
   return params;
 }
 
+Node *parse_call_expr(Parser *parser, Node *func) {
+  Node *call = new_call_expr(parser->cur_token);
+  call->func = func;
+  call->args = parse_call_args(parser);
+
+  return call;
+}
+
+Vector *parse_call_args(Parser *parser) {
+  Vector *args = new_vector();
+
+  if (peek_token_is(parser, TOK_RPAREN)) {
+    next_token_parser(parser);
+    return args;
+  }
+
+  next_token_parser(parser);
+  vec_push(args, (void *)parse_expr(parser, PREC_LOWEST));
+
+  while (peek_token_is(parser, TOK_COMMA)) {
+    next_token_parser(parser);
+    next_token_parser(parser);
+    vec_push(args, parse_expr(parser, PREC_LOWEST));
+  }
+
+  if (!expect_peek(parser, TOK_RPAREN))
+    return NULL;
+
+  return args;
+}
+
 Program *parse_program(Parser *parser) {
   Program *program = new_program();
   Node *stmt;
@@ -353,5 +385,6 @@ void new_precedences() {
   map_put(precedences, token_type(TOK_PLUS),     (void *)PREC_SUM); 
   map_put(precedences, token_type(TOK_MINUS),    (void *)PREC_SUM); 
   map_put(precedences, token_type(TOK_SLASH),    (void *)PREC_PRODUCT); 
-  map_put(precedences, token_type(TOK_ASTERISK), (void *)PREC_PRODUCT); 
+  map_put(precedences, token_type(TOK_ASTERISK), (void *)PREC_PRODUCT);
+  map_put(precedences, token_type(TOK_LPAREN),   (void *)PREC_CALL);
 }

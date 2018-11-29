@@ -718,6 +718,40 @@ void test_func_param_parsing() {
   
 }
 
+void test_call_expr() {
+  char *input = "add(1, 2 * 3, 4 + 5)";
+
+  Lexier *l = new_lexier(input);
+  Parser *p = new_parser(l);
+  Program *program = parse_program(p);
+
+  check_parser_error(p);
+
+  if (program->stmts->len != 1)
+    error("program->stmts does not contain 1 statements.got=%d\n",
+	  program->stmts->len);
+
+  Node *stmt = (Node *)program->stmts->data[0];
+  
+  if (stmt->ty != AST_EXPR_STMT)
+    error("program->stmts->data[0] is not AST_CALL_EXPR_STMT. got=%s\n", node_type(stmt->ty));
+
+  Node *expr = stmt->expr;
+
+  if (expr->ty != AST_CALL_EXPR)
+    error("stmt->expr is not AST_CALL_EXPR. got=%s\n", node_type(expr->ty));
+
+  if (!test_ident(expr->func, "add"))
+    return;
+
+  if (expr->args->len != 3)
+    error("wrong length of arguments. got=%d\n", expr->args->len);
+
+  test_lit_expr(expr->args->data[0], (void *)1, TYPENAME_INT);
+  test_inf_expr(expr->args->data[1], (void *)2, TYPENAME_INT, "*", 3, TYPENAME_INT);
+  test_inf_expr(expr->args->data[2], (void *)4, TYPENAME_INT,  "+", 5, TYPENAME_INT);
+  
+}
 
 void run_parser_test() {
   printf("=== test parser ===\n");
@@ -745,5 +779,7 @@ void run_parser_test() {
   test_func_lit_parsing();
   printf("- function parameters\n");
   test_func_param_parsing();
+  printf("- call expression\n");
+  test_call_expr();
   printf("OK\n");
 }

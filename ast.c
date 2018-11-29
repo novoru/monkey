@@ -118,6 +118,14 @@ Node *new_func(Token *token) {
   return func;
 }
 
+Node *new_call_expr(Token *token) {
+  Node *call = malloc(sizeof(Node));
+  call->ty = AST_CALL_EXPR;
+  call->token - token;
+
+  return call;
+}
+
 void del_node(Node *node) {
   if (node == NULL) return;
   switch (node->ty) {
@@ -235,7 +243,7 @@ char *node_to_str(Node *node) {
     return str;
   case AST_FUNCTION:
     goto workaround;
-  workaround:;
+    workaround:;
     if (node->params->len == 0)
       return "";
     char *params = "";
@@ -246,6 +254,17 @@ char *node_to_str(Node *node) {
 	params = format("%s, %s", params, node_to_str((Node *)node->params->data[i]));
 
     str = format("%s(%s) %s", node->token->lit, params, node_to_str(node->body));
+    
+    return str;
+  case AST_CALL_EXPR:
+    str = format("%s(", node_to_str(node->func));
+    for (int i =0; i < node->args->len; i++) {
+      if (i == 0)
+	str = format("%s%s",   str, node_to_str(node->args->data[i]));
+      else
+	str = format("%s, %s", str, node_to_str(node->args->data[i]));
+    }
+    str = format("%s)", str);
     
     return str;
   }
@@ -281,6 +300,8 @@ char *node_type(int ty) {
     return "AST_BLOCK_STMT";
   case AST_FUNCTION:
     return "AST_FUNCTION";
+  case AST_CALL_EXPR:
+    return "AST_CALL_EXPR";
   }
 
   return NULL;
