@@ -142,7 +142,7 @@ let foobar = 838383; \
 
   Lexier *l = new_lexier(input);
   Parser *p = new_parser(l);
-  Program *program = parse_program(p);
+  Node *program = parse_program(p);
 
   if (program == NULL)
     error("parse_program(p) returned NULL\n");
@@ -157,11 +157,7 @@ let foobar = 838383; \
     Node *stmt = (Node *)program->stmts->data[i];
     if (!test_let_stmt(stmt, expects[i]))
       return;
-    del_node(stmt);
   }
-  del_program(program);
-  del_parser(p);
-  del_lexier(l);
   
 }
 
@@ -174,7 +170,7 @@ return 993322;	   \
 
   Lexier *l = new_lexier(input);
   Parser *p = new_parser(l);
-  Program *program = parse_program(p);
+  Node *program = parse_program(p);
 
   check_parser_error(p);
 
@@ -191,11 +187,7 @@ return 993322;	   \
     if (strcmp(stmt->token->lit, "return") != 0)
       error("stmt->token->lit not 'return'. got=%s\n", stmt->token->lit);
     
-    del_node(stmt);
   }
-  del_program(program);
-  del_parser(p);
-  del_lexier(l);
   
 }
 
@@ -204,7 +196,7 @@ void test_ident_expr() {
 
   Lexier *l = new_lexier(input);
   Parser *p = new_parser(l);
-  Program *program = parse_program(p);
+  Node *program = parse_program(p);
 
   check_parser_error(p);
 
@@ -228,11 +220,6 @@ void test_ident_expr() {
   if (strcmp(ident->token->lit, "foobar") != 0)
     error("ident->token->lit not 'foobar'. got=%s\n", ident->token->lit);
   
-  del_node(ident);
-  del_program(program);
-  del_parser(p);
-  del_lexier(l);
-
 }
 
 void test_int_expr() {
@@ -241,7 +228,7 @@ void test_int_expr() {
   
   Lexier *l = new_lexier(input);
   Parser *p = new_parser(l);
-  Program *program = parse_program(p);
+  Node *program = parse_program(p);
   
   check_parser_error(p);
 
@@ -264,10 +251,6 @@ void test_int_expr() {
   if (strcmp(int_lit->expr->token->lit, "5") != 0)
     error("int_lit->expr->token->lit not '5'. got=%s\n", int_lit->expr->token->lit);
  
-  del_node(int_lit);
-  del_program(program);
-  del_parser(p);
-  del_lexier(l);
 }
 
 typedef struct pref_test {
@@ -294,7 +277,7 @@ void test_pref_expr() {
     pref_test *t = pref_tests[i];
     Lexier *l = new_lexier(t->input);
     Parser *p = new_parser(l);
-    Program *program = parse_program(p);
+    Node *program = parse_program(p);
 
     check_parser_error(p);
 
@@ -318,11 +301,6 @@ void test_pref_expr() {
     if (!test_int_lit(expr->right, t->value))
       exit(EXIT_FAILURE);
     
-    del_node(expr);
-    del_program(program);
-    del_parser(p);
-    del_lexier(l);
-  
   }
   
 }
@@ -369,7 +347,7 @@ void test_parse_inf_exprs() {
     inf_test *t = inf_tests[i];
     Lexier *l = new_lexier(t->input);
     Parser *p = new_parser(l);
-    Program *program = parse_program(p);
+    Node *program = parse_program(p);
 
     check_parser_error(p);
 
@@ -393,11 +371,6 @@ void test_parse_inf_exprs() {
 		       t->right, t->ty_right))
       exit(EXIT_FAILURE);
     
-    del_node(expr);
-    del_program(program);
-    del_parser(p);
-    del_lexier(l);
-  
   }  
   
 }
@@ -424,7 +397,7 @@ void test_bool_expr() {
     bool_test *t = bool_tests[i];
     Lexier *l = new_lexier(t->input);
     Parser *p = new_parser(l);
-    Program *program = parse_program(p);
+    Node *program = parse_program(p);
 
     check_parser_error(p);
 
@@ -446,11 +419,6 @@ void test_bool_expr() {
 	    t->expected ? "true" : "false",
 	    expr->bool  ? "true" : "false");
     
-    del_node(expr);
-    del_program(program);
-    del_parser(p);
-    del_lexier(l);
-  
   }  
   
 }
@@ -506,8 +474,8 @@ void test_op_prec_parsing() {
 
       Lexier *l = new_lexier(t->input);
       Parser *p = new_parser(l);
-      Program *program = parse_program(p);
-        
+      Node *program = parse_program(p);
+
       check_parser_error(p);
 
       char *actual = program_to_str(program);
@@ -515,10 +483,6 @@ void test_op_prec_parsing() {
       if (strcmp(actual, t->expected) != 0)
 	error("expected=%s, got=%s\n", t->expected, actual);
 
-      del_program(program);
-      del_parser(p);
-      del_lexier(l);
-  
   }  
 
 }
@@ -527,7 +491,7 @@ void test_if_expr() {
   char *input = "if (x < y) { x }";
   Lexier *l = new_lexier(input);
   Parser *p = new_parser(l);
-  Program *program = parse_program(p);
+  Node *program = parse_program(p);
 
   check_parser_error(p);
 
@@ -565,18 +529,13 @@ void test_if_expr() {
   if (expr->alter != NULL)
     error("expr->alter was not NULL.\n");
   
-  del_node(expr);
-  del_program(program);
-  del_parser(p);
-  del_lexier(l);
-
 }
 
 void test_if_else_expr() {
   char *input = "if (x < y) { x } else { y }";
   Lexier *l = new_lexier(input);
   Parser *p = new_parser(l);
-  Program *program = parse_program(p);
+  Node *program = parse_program(p);
 
   check_parser_error(p);
 
@@ -619,10 +578,6 @@ void test_if_else_expr() {
   if (test_ident(alter->expr, "y"))
     return;
 
-  del_node(expr);
-  del_program(program);
-  del_parser(p);
-  del_lexier(l);
 
 }
 
@@ -631,7 +586,7 @@ void test_func_lit_parsing() {
   char *input = "fn(x, y) { x + y;}";
   Lexier *l = new_lexier(input);
   Parser *p = new_parser(l);
-  Program *program = parse_program(p);
+  Node *program = parse_program(p);
 
   check_parser_error(p);
 
@@ -706,7 +661,7 @@ void test_func_param_parsing() {
   for (int i = 0; i < LENGTH(tests); i++) {
     Lexier *l = new_lexier(tests[i]->input);
     Parser *p = new_parser(l);
-    Program *program = parse_program(p);
+    Node *program = parse_program(p);
 
     check_parser_error(p);
     
@@ -729,7 +684,7 @@ void test_call_expr() {
 
   Lexier *l = new_lexier(input);
   Parser *p = new_parser(l);
-  Program *program = parse_program(p);
+  Node *program = parse_program(p);
 
   check_parser_error(p);
 

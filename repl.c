@@ -22,7 +22,7 @@ void repl_start() {
     Lexier *l = new_lexier(input);
     Parser *p = new_parser(l);
 
-    Program *program = parse_program(p);
+    Node *program = parse_program(p);
 
     if (p->errors->len != 0) {
       print_parse_errors(p->errors);

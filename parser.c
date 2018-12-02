@@ -318,8 +318,8 @@ Vector *parse_call_args(Parser *parser) {
   return args;
 }
 
-Program *parse_program(Parser *parser) {
-  Program *program = new_program();
+Node *parse_program(Parser *parser) {
+  Node *program = new_program();
   Node *stmt;
   
   while (parser->cur_token->ty != TOK_EOF) {

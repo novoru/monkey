@@ -5,6 +5,7 @@
 #include "util.h"
 
 enum {
+      AST_PROGRAM,    // program
       AST_STMT,       // statement
       AST_IDENT,      // identifier
       AST_EXPR,       // expression
@@ -44,10 +45,6 @@ typedef struct Node {
   struct Node *ret;            // return value
 } Node;
 
-typedef struct {
-  Vector *stmts;  //statements 
-} Program;
-
 Node *new_stmt(Token *token);
 Node *new_ident(Token *token);
 Node *new_expr(Token *token);
@@ -63,9 +60,8 @@ Node *new_block_stmt(Token *token);
 Node *new_func(Token *token);
 Node *new_call_expr(Token *token);
 void del_node(Node *node);
-Program *new_program();
-void del_program(Program *program);
-char *program_to_str(Program *program);
+Node *new_program();
+char *program_to_str(Node *program);
 char *node_to_str(Node *node);
 char *node_type(int ty);
 

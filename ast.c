@@ -147,34 +147,35 @@ void del_node(Node *node) {
   free(node);
 }
 
-Program *new_program() {
-  Program *program = malloc(sizeof(Program));
+Node *new_program() {
+  Node *program = malloc(sizeof(Node));
   program->stmts = new_vector();
   
   return program;
 }
 
-void del_program(Program *program) {
-  vec_del(program->stmts);
-  free(program);
-}
-
-char *program_to_str(Program *program) {
+char *program_to_str(Node *program) {
   if (program->stmts->len < 1)
     return NULL;
 
   char *str = node_to_str((Node *)program->stmts->data[0]);
 
-  for(int i = 1;i < program->stmts->len; i++)
+  for(int i = 1; i < program->stmts->len; i++)
     str = format("%s%s", str, node_to_str((Node *)program->stmts->data[i]));
 
   return str;
 }
 
 char *node_to_str(Node *node) {
-  char *str;
+  char *str = "";
 
   switch (node->ty) {
+  case AST_PROGRAM:
+    if (node->stmts->len < 1)
+      return NULL;
+    for (int i = 0; i < node->stmts->len; i++)
+      str = format("%s%s", str, node_to_str((Node *)node->stmts->data[i]));
+    return str;
   case AST_IDENT:
     return node->token->lit;
   case AST_LET:
@@ -253,6 +254,8 @@ char *node_to_str(Node *node) {
 
 char *node_type(int ty) {
   switch (ty) {
+  case AST_PROGRAM:
+    return "AST_PROGRAM";
   case AST_STMT:
     return "AST_STMT";
   case AST_IDENT:

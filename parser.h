@@ -32,7 +32,7 @@ Map *precedences;
 Parser *new_parser(Lexier *lexier);
 void del_parser(Parser *parser);
 void next_token_parser(Parser *parser);
-Program *parse_program(Parser *parser);
+Node *parse_program(Parser *parser);
 Node *parse_stmt(Parser *parser);
 Node *parse_let_stmt(Parser *parser);
 Node *parse_return_stmt(Parser *parser);
@@ -50,7 +50,7 @@ Node *parse_func(Parser *parser);
 Node *parse_call_expr(Parser *parser, Node *func);
 Vector *parse_call_args(Parser *parser);
 Vector *parse_func_params(Parser *parser);
-Program *parse_program(Parser *parser);
+Node *parse_program(Parser *parser);
 void peek_error(Parser *parser, int ty);
 
 _Bool cur_token_is(Parser *parser, int ty);
