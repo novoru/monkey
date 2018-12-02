@@ -90,11 +90,29 @@ void test_eval_bool_expr() {
   }
 }
 
+void test_bang_op() {
+  bool_obj_test *tests[] = { new_bool_obj_test("!true", false),
+			     new_bool_obj_test("!false", true),
+			     new_bool_obj_test("!5", false),
+			     new_bool_obj_test("!!true", true),
+			     new_bool_obj_test("!!false", false),
+			     new_bool_obj_test("!!5", true)
+  };
+
+  for (int i = 0; i < LENGTH(tests); i++) {
+    Object *evaluated = test_eval(tests[i]->input);
+    test_bool_obj(evaluated, tests[i]->expected);
+  }
+}
+
 void run_eval_test() {
   printf("=== test eval ===\n");
   printf("- int\n");
   test_eval_int_expr();
   printf("- bool\n");
   test_eval_bool_expr();
+  printf("- bang\n");
+  test_bang_op();
   printf("OK\n");
 }
+

@@ -1,3 +1,4 @@
+#include "eval.h"
 #include "object.h"
 
 Object *new_int_obj(long value) {
