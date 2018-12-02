@@ -1,5 +1,7 @@
 #include "ast.h"
+#include "eval.h"
 #include "lexier.h"
+#include "object.h"
 #include "parser.h"
 #include "token.h"
 
@@ -29,9 +31,8 @@ void repl_start() {
       continue;
     }
 
-    char *str = program_to_str(program);
-    
-    if (str != NULL)
-      printf("%s\n", program_to_str(program));
+    Object *evaluated = eval(program);
+    if (evaluated != NULL)
+      printf(format("%s\n", inspect_obj(evaluated)));
   }
 }
