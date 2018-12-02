@@ -182,22 +182,13 @@ char *node_to_str(Node *node) {
 
   switch (node->ty) {
   case AST_IDENT:
-    return node->name;
+    return node->token->lit;
   case AST_LET:
-    str = malloc(strlen(node->token->lit)+2);
-    strcpy(str, node->token->lit);
-    strcat(str, " ");
-    if (node->ident != NULL) {
-      str = realloc(str, strlen(str)+strlen(node->ident->name)+3);
-      strcat(str, node->ident->name);
-      strcat(str, " = ");
-    }
-    if (node->expr != NULL) {
-      char *tmp = node_to_str(node->expr);
-      str = realloc(str, strlen(str)+strlen(tmp));
-      strcat(str, tmp);
-    }
-    strcat(str, ";");
+    str = format("%s %s = ", node->token->lit,
+		 node_to_str(node->ident));
+    if (node->data != NULL)
+      str = format("%s%s", str, node_to_str(node->data));
+    str = format("%s;", str);
     return str;
   case AST_RETURN:
     str = malloc(strlen(node->token->lit)+2);

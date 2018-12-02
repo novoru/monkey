@@ -69,14 +69,21 @@ Node *parse_stmt(Parser *parser){
 Node *parse_let_stmt(Parser *parser) {
   Node *stmt = new_let_stmt(parser->cur_token);
 
-  if (expect_peek(parser, TOK_IDENT) == 0)
+  if (!expect_peek(parser, TOK_IDENT))
     return NULL;
-  
+
   stmt->ident = new_ident(parser->cur_token);
+  
+  if (!expect_peek(parser, TOK_ASSIGN))
+    return NULL;
 
-  while (parser->cur_token->ty != TOK_SEMICOLON)
+  next_token_parser(parser);
+
+  stmt->data = parse_expr(parser, PREC_LOWEST);
+  
+  if (peek_token_is(parser, TOK_SEMICOLON))
     next_token_parser(parser);
-
+  
   return stmt;
 }
 
@@ -85,7 +92,9 @@ Node *parse_return_stmt(Parser *parser) {
 
   next_token_parser(parser);
 
-  while (parser->cur_token->ty != TOK_SEMICOLON)
+  stmt->ret = parse_expr(parser, PREC_LOWEST);
+
+  if (peek_token_is(parser, TOK_SEMICOLON))
     next_token_parser(parser);
 
   return stmt;  
@@ -342,8 +351,10 @@ _Bool expect_peek(Parser *parser, int ty) {
     next_token_parser(parser);
     return true;
   }
-  else
+  else {
+    peek_error(parser, ty); 
     return false;
+  }
 }
 
 void register_pref(int ty, void(*func)) {

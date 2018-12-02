@@ -26,6 +26,7 @@ typedef struct Node {
   Token *token;
   struct Node *ident;   // identifier
   char *name;           // name of identifier
+  struct Node *data;    // data of let statement
   struct Node *expr;    // expression
   long value;           // value of integer literal
   char *op;             // operator
@@ -40,6 +41,7 @@ typedef struct Node {
   struct Node *body;    // body of function
   struct Node *func;    // Identifier of Function literal
   Vector *args;         // arguments of call statement
+  struct Node *ret;            // return value
 } Node;
 
 typedef struct {

@@ -493,6 +493,12 @@ void test_op_prec_parsing() {
 				    new_op_prec_test("2 / (5 + 5);", "(2 / (5 + 5))"),
 				    new_op_prec_test("-(5 + 5);", "(-(5 + 5))"),
 				    new_op_prec_test("!(true == true);", "(!(true == true))"),
+				    new_op_prec_test("a + add(b * c) + d",
+						      "((a + add((b * c))) + d)"),
+				    new_op_prec_test("add(a, b, 1, 2 *3, 4 + 5, add(6, 7 * 8))",
+						     "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"),
+				    new_op_prec_test("add(a + b + c * d / f + g)",
+						     "add((((a + b) + ((c * d) / f)) + g))")
   };
 
     for (int i = 0; i < LENGTH(op_prec_tests); i++) {
