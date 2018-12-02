@@ -15,6 +15,9 @@ typedef struct Object{
   void *value;
 } Object;
 
+Object *true_obj;
+Object *false_obj;
+
 Object *new_int_obj(long value);
 Object *new_bool_obj(_Bool value);
 Object *new_null_obj();

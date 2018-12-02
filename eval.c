@@ -18,6 +18,17 @@ Object *eval(Node *node) {
     return eval(node->expr);
   case AST_INT:
     return new_int_obj(node->value);
+  case AST_BOOL:
+    return new_bool_obj(node->bool);
   }
   return NULL;
+}
+
+Object *bool_obj(Node *node){
+  if (node->bool == true) {
+    if(true_obj == NULL) true_obj = new_bool_obj(true);
+    return true_obj;
+  }
+  if (false_obj == NULL) false_obj = new_bool_obj(false);
+  return false_obj;
 }

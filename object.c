@@ -29,7 +29,7 @@ char *inspect_obj(Object *obj) {
   case OBJ_INT:
     return format("%d", (int)obj->value);
   case OBJ_BOOL:
-    return format("%s", (_Bool)obj->value ? "true" : "false");
+    return format("%s", ((_Bool)obj->value ? "true" : "false"));
   case OBJ_NULL:
     return "NULL";
   }

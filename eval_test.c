@@ -15,7 +15,6 @@ Object *test_eval(char *input) {
 
 _Bool test_int_obj(Object *obj, long expected) {
   if (obj->ty != OBJ_INT) {
-    DEBUG_PRINT("\n");
     printf("object is not int. got=%s\n", obj_type(obj->ty));
     return false;
   }
@@ -28,33 +27,74 @@ _Bool test_int_obj(Object *obj, long expected) {
   return true;
 }
 
-typedef struct int_test{
-  char *input;
-  long value;
-} int_test;
+_Bool test_bool_obj(Object *obj, _Bool expected) {
+  if (obj->ty != OBJ_BOOL) {
+    printf("object is not bool. got=%s\n", obj_type(obj->ty));
+    return false;
+  }
 
-int_test *new_int_test(char *input, long value) {
-  int_test *t = malloc(sizeof(int_test));
+  if (!((_Bool)obj->value == expected)) {
+    printf("object has wrong value. got=%s, want=%s\n",
+	   inspect_obj(obj),expected ? "true" : "false" );
+    return false;
+  }
+
+  return true;
+}
+
+typedef struct int_obj_test{
+  char *input;
+  long expected;
+} int_obj_test;
+
+int_obj_test *new_int_obj_test(char *input, long expected) {
+  int_obj_test *t = malloc(sizeof(int_obj_test));
   t->input = input;
-  t->value = value;
+  t->expected = expected;
 
   return t;
 }
 
 void test_eval_int_expr() {
-  int_test *tests[] = { new_int_test("5", 5),
-			new_int_test("10", 10)
+  int_obj_test *tests[] = { new_int_obj_test("5", 5),
+			    new_int_obj_test("10", 10)
   };
 
   for (int i = 0; i < LENGTH(tests); i++) {
     Object *evaluated = test_eval(tests[i]->input);
-    test_int_obj(evaluated, tests[i]->value);
+    test_int_obj(evaluated, tests[i]->expected);
+  }
+}
+
+typedef struct bool_obj_test{
+  char *input;
+  _Bool expected;
+} bool_obj_test;
+
+bool_obj_test *new_bool_obj_test(char *input, _Bool expected) {
+  bool_obj_test *t = malloc(sizeof(bool_obj_test));
+  t->input = input;
+  t->expected = expected;
+
+  return t;
+}
+
+void test_eval_bool_expr() {
+  bool_obj_test *tests[] = { new_bool_obj_test("true",  true),
+			     new_bool_obj_test("false", false)
+  };
+
+  for (int i = 0; i < LENGTH(tests); i++) {
+    Object *evaluated = test_eval(tests[i]->input);
+    test_bool_obj(evaluated, tests[i]->expected);
   }
 }
 
 void run_eval_test() {
   printf("=== test eval ===\n");
-  printf("int\n");
+  printf("- int\n");
   test_eval_int_expr();
+  printf("- bool\n");
+  test_eval_bool_expr();
   printf("OK\n");
 }
