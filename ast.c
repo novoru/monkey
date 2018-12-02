@@ -163,18 +163,12 @@ char *program_to_str(Program *program) {
   if (program->stmts->len < 1)
     return NULL;
 
-  char *tmp = node_to_str((Node *)program->stmts->data[0]);
-  char *str = malloc(sizeof(tmp));
-  str = strcpy(str, tmp);
+  char *str = node_to_str((Node *)program->stmts->data[0]);
 
-  for(int i = 1;i < program->stmts->len; i++) {
-    tmp = node_to_str((Node *)program->stmts->data[i]);
-    str = realloc(str, strlen(str) * sizeof(char) + strlen(tmp) * sizeof(char));
-    strcat(str, tmp);
-  }
+  for(int i = 1;i < program->stmts->len; i++)
+    str = format("%s%s", str, node_to_str((Node *)program->stmts->data[i]));
 
   return str;
-  
 }
 
 char *node_to_str(Node *node) {
@@ -191,15 +185,9 @@ char *node_to_str(Node *node) {
     str = format("%s;", str);
     return str;
   case AST_RETURN:
-    str = malloc(strlen(node->token->lit)+2);
-    strcpy(str, node->token->lit);
-    strcat(str, " ");
-     if (node->expr != NULL) {
-      char *tmp = node_to_str(node->expr);
-      str = realloc(str, strlen(str)+strlen(tmp));
-      strcat(str, tmp);
-    }
-    strcat(str, ";");
+    str = format("%s", node->token->lit);
+    if (node->ret != NULL)
+      str = format("%s %s", str, node_to_str(node->ret));
     return str;
   case AST_EXPR_STMT:
     if (node->expr != NULL)
