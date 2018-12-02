@@ -57,7 +57,21 @@ int_obj_test *new_int_obj_test(char *input, long expected) {
 
 void test_eval_int_expr() {
   int_obj_test *tests[] = { new_int_obj_test("5", 5),
-			    new_int_obj_test("10", 10)
+			    new_int_obj_test("10", 10),
+			    new_int_obj_test("-5", -5),
+			    new_int_obj_test("-10", -10),
+			    new_int_obj_test("5 + 5 + 5 + 5 - 10", 10),
+			    new_int_obj_test("2 * 2 * 2 * 2 * 2", 32),
+			    new_int_obj_test("-50 + 100 + -50", 0),
+			    new_int_obj_test("5 * 2 + 10", 20),
+			    new_int_obj_test("5 + 2 * 10", 25),
+			    new_int_obj_test("20 + 2 * -10", 0),
+			    new_int_obj_test("50 / 2 * 2 + 10", 60),
+			    new_int_obj_test("2 * (5 + 10)", 30),
+			    new_int_obj_test("3 * 3 * 3 +10", 37),
+			    new_int_obj_test("3 * (3 * 3) + 10", 37),
+			    new_int_obj_test("(5 + 10 * 2 + 15 / 3) * 2 + -10", 50)
+			    
   };
 
   for (int i = 0; i < LENGTH(tests); i++) {

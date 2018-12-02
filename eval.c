@@ -39,13 +39,46 @@ Object *eval_bang_op_expr(Object *right) {
   }
 }
 
+Object *eval_minus_pref_expr(Object *right) {
+  if (right->ty != OBJ_INT)
+    return get_null_obj();
+
+  long value = (long)right->value;
+
+  return new_int_obj(-value);
+}
+
 Object *eval_pref_expr(char *op, Object *right) {
   if (!strcmp(op, "!"))
     return eval_bang_op_expr(right);
   else if (!strcmp(op, "-"))
-    return NULL;
+    return eval_minus_pref_expr(right);
   else
-    return NULL;
+    return get_null_obj();
+}
+
+Object *eval_int_inf_expr(char *op, Object *left, Object *right) {
+  long lval = (long)left->value;
+  long rval = (long)right->value;
+
+  if (!strcmp(op, "+"))
+    return new_int_obj(lval+rval);
+  else if(!strcmp(op, "-"))
+    return new_int_obj(lval-rval);
+  else if(!strcmp(op, "*"))
+    return new_int_obj(lval*rval);
+  else if(!strcmp(op, "/"))
+    return new_int_obj(lval/rval);
+  else
+    return get_null_obj();
+  
+}
+
+Object *eval_inf_expr(char *op, Object *left, Object *right) {
+  if (left->ty == OBJ_INT && right->ty == OBJ_INT)
+    return eval_int_inf_expr(op, left, right);
+  
+  return get_null_obj();
 }
 
 Object *eval(Node *node) {
@@ -59,10 +92,16 @@ Object *eval(Node *node) {
   case AST_BOOL:
     return get_bool_obj((_Bool)node->bool);
   case AST_PREF_EXPR:
-    goto workaround;
-  workaround:;
-    Object *right = eval(node->right);
-    return eval_pref_expr(node->op, right);
+    goto pref_workaround;
+  pref_workaround:;
+    Object *pref_right = eval(node->right);
+    return eval_pref_expr(node->op, pref_right);
+  case AST_INF_EXPR:
+    goto inf_workaround;
+  inf_workaround:;
+    Object *inf_left = eval(node->left);
+    Object *inf_right = eval(node->right);
+    return eval_inf_expr(node->op, inf_left, inf_right);
   }
-  return NULL;
+  return get_null_obj();
 }
