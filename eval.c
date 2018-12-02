@@ -69,6 +69,14 @@ Object *eval_int_inf_expr(char *op, Object *left, Object *right) {
     return new_int_obj(lval*rval);
   else if(!strcmp(op, "/"))
     return new_int_obj(lval/rval);
+  else if(!strcmp(op, "<"))
+    return get_bool_obj(lval < rval);
+  else if(!strcmp(op, ">"))
+    return get_bool_obj(lval > rval);
+  else if(!strcmp(op, "=="))
+    return get_bool_obj(lval == rval);
+  else if(!strcmp(op, "!="))
+    return get_bool_obj(lval != rval);
   else
     return get_null_obj();
   
@@ -77,7 +85,10 @@ Object *eval_int_inf_expr(char *op, Object *left, Object *right) {
 Object *eval_inf_expr(char *op, Object *left, Object *right) {
   if (left->ty == OBJ_INT && right->ty == OBJ_INT)
     return eval_int_inf_expr(op, left, right);
-  
+  else if (!strcmp(op, "=="))
+    return get_bool_obj((_Bool)left->value == (_Bool)right->value);
+  else if (!strcmp(op, "!="))
+    return get_bool_obj((_Bool)left->value != (_Bool)right->value);
   return get_null_obj();
 }
 

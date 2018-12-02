@@ -95,7 +95,24 @@ bool_obj_test *new_bool_obj_test(char *input, _Bool expected) {
 
 void test_eval_bool_expr() {
   bool_obj_test *tests[] = { new_bool_obj_test("true",  true),
-			     new_bool_obj_test("false", false)
+			     new_bool_obj_test("false", false),
+			     new_bool_obj_test("1 < 2", true),
+			     new_bool_obj_test("1 > 2", false),
+			     new_bool_obj_test("1 < 1", false),
+			     new_bool_obj_test("1 > 1", false),
+			     new_bool_obj_test("1 == 1", true),
+			     new_bool_obj_test("1 != 1", false),
+			     new_bool_obj_test("1 == 2", false),
+			     new_bool_obj_test("1 != 2", true),
+			     new_bool_obj_test("true == true", true),
+			     new_bool_obj_test("false == false", true),
+			     new_bool_obj_test("true == false", false),
+			     new_bool_obj_test("true != false", true),
+			     new_bool_obj_test("false != true", true),
+			     new_bool_obj_test("(1 < 2) == true", true),
+			     new_bool_obj_test("(1 < 2) == false", false),
+			     new_bool_obj_test("(1 > 2) == true", false),
+			     new_bool_obj_test("(1 > 2) == false", true),
   };
 
   for (int i = 0; i < LENGTH(tests); i++) {
