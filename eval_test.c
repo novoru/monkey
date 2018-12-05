@@ -15,7 +15,7 @@ Object *test_eval(char *input) {
 
 _Bool test_int_obj(Object *obj, long expected) {
   if (obj->ty != OBJ_INT) {
-    printf("object is not int. got=%s\n", obj_type(obj->ty));
+    printf("object is not int. got=%s\n", obj_type(obj));
     return false;
   }
 
@@ -36,6 +36,15 @@ _Bool test_bool_obj(Object *obj, _Bool expected) {
   if (!((_Bool)obj->value == expected)) {
     printf("object has wrong value. got=%s, want=%s\n",
 	   inspect_obj(obj),expected ? "true" : "false" );
+    return false;
+  }
+
+  return true;
+}
+
+_Bool test_null_obj(Object *obj) {
+  if (obj != NULL) {
+    printf("object is not NULL. got=%s\n", obj_type(obj));
     return false;
   }
 
@@ -136,6 +145,41 @@ void test_bang_op() {
   }
 }
 
+typedef struct if_else_test{
+  char *input;
+  void *expected;
+  int ty;
+} if_else_test;
+
+if_else_test *new_if_else_test(char *input, void *expected, int ty) {
+  if_else_test *t = malloc(sizeof(if_else_test));
+  t->input = input;
+  t->expected = expected;
+  t->ty = ty;
+
+  return t;
+}
+
+static void test_if_else_expr() {
+  if_else_test *tests[] = { new_if_else_test("if (true) { 10 }", (void *)10, TYPENAME_INT),
+			    new_if_else_test("if (false) { 10 }", NULL, TYPENAME_OTHER),
+			    new_if_else_test("if (1) { 10 }", (void *)10, TYPENAME_INT),
+			    new_if_else_test("if (1 < 2) { 10 }", (void *)10, TYPENAME_INT),
+			    new_if_else_test("if (1 > 2) { 10 }", NULL, TYPENAME_OTHER),
+			    new_if_else_test("if (1 > 2) { 10 } else {20}", (void *)20, TYPENAME_INT),
+			    new_if_else_test("if (1 < 2) { 10 } else {20}", (void *)10, TYPENAME_INT)
+			    
+  };
+
+  for (int i = 0; i < LENGTH(tests); i++) {
+    Object *evaluated = test_eval(tests[i]->input);
+    if (tests[i]->ty == TYPENAME_INT)
+      test_int_obj(evaluated, (long)tests[i]->expected);
+    else
+      test_null_obj(evaluated);
+  }
+}
+
 void run_eval_test() {
   printf("=== test eval ===\n");
   printf("- int\n");
@@ -144,6 +188,8 @@ void run_eval_test() {
   test_eval_bool_expr();
   printf("- bang\n");
   test_bang_op();
+  printf("- if else\n");
+  test_if_else_expr();
   printf("OK\n");
 }
 

@@ -531,7 +531,7 @@ void test_if_expr() {
   
 }
 
-void test_if_else_expr() {
+static void test_if_else_expr() {
   char *input = "if (x < y) { x } else { y }";
   Lexier *l = new_lexier(input);
   Parser *p = new_parser(l);

@@ -92,6 +92,28 @@ Object *eval_inf_expr(char *op, Object *left, Object *right) {
   return get_null_obj();
 }
 
+_Bool is_truthy(Object *obj) {
+  switch (obj->ty) {
+  case OBJ_NULL:
+    return false;
+  case OBJ_BOOL:
+    return (_Bool)obj->value;
+  default:
+    return true;
+  }
+}
+
+Object *eval_if_expr(Node *ie) {
+  Object *cond = eval(ie->cond);
+
+  if (is_truthy(cond))
+    return eval(ie->conseq);
+  else if (ie->alter != NULL)
+    return eval(ie->alter);
+  else
+    return NULL;
+}
+
 Object *eval(Node *node) {
   switch (node->ty) {
   case AST_PROGRAM:
@@ -113,6 +135,10 @@ Object *eval(Node *node) {
     Object *inf_left = eval(node->left);
     Object *inf_right = eval(node->right);
     return eval_inf_expr(node->op, inf_left, inf_right);
+  case AST_BLOCK_STMT:
+    return eval_stmts(node->stmts);
+  case AST_IF_EXPR:
+    return eval_if_expr(node);
   }
   return get_null_obj();
 }
