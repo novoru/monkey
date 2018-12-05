@@ -43,7 +43,7 @@ _Bool test_bool_obj(Object *obj, _Bool expected) {
 }
 
 _Bool test_null_obj(Object *obj) {
-  if (obj != NULL) {
+  if (obj->ty != OBJ_NULL) {
     printf("object is not NULL. got=%s\n", obj_type(obj));
     return false;
   }

@@ -709,8 +709,8 @@ void test_call_expr() {
     error("wrong length of arguments. got=%d\n", expr->args->len);
 
   test_lit_expr(expr->args->data[0], (void *)1, TYPENAME_INT);
-  test_inf_expr(expr->args->data[1], (void *)2, TYPENAME_INT, "*", 3, TYPENAME_INT);
-  test_inf_expr(expr->args->data[2], (void *)4, TYPENAME_INT,  "+", 5, TYPENAME_INT);
+  test_inf_expr(expr->args->data[1], (void *)2, TYPENAME_INT, "*", (void *)3, TYPENAME_INT);
+  test_inf_expr(expr->args->data[2], (void *)4, TYPENAME_INT,  "+", (void *)5, TYPENAME_INT);
   
 }
 

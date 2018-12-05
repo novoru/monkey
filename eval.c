@@ -111,7 +111,7 @@ Object *eval_if_expr(Node *ie) {
   else if (ie->alter != NULL)
     return eval(ie->alter);
   else
-    return NULL;
+    return get_null_obj();
 }
 
 Object *eval(Node *node) {
@@ -136,7 +136,9 @@ Object *eval(Node *node) {
     Object *inf_right = eval(node->right);
     return eval_inf_expr(node->op, inf_left, inf_right);
   case AST_BLOCK_STMT:
-    return eval_stmts(node->stmts);
+    if (node->stmts->len > 0)
+      return eval_stmts(node->stmts);
+    return get_null_obj();
   case AST_IF_EXPR:
     return eval_if_expr(node);
   }
