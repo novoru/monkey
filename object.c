@@ -25,6 +25,12 @@ Object *new_null_obj() {
   return o;
 }
 
+Object *new_return_obj(Object *value) {
+  Object *o = malloc(sizeof(Object));
+  o->ty = OBJ_RETURN;
+  o->value = (void *)value;
+}
+
 char *inspect_obj(Object *obj) {
   switch (obj->ty) {
   case OBJ_INT:
@@ -33,6 +39,8 @@ char *inspect_obj(Object *obj) {
     return format("%s", ((_Bool)obj->value ? "true" : "false"));
   case OBJ_NULL:
     return "NULL";
+  case OBJ_RETURN:
+    return inspect_obj((Object *)obj->value);
   }
 
   return "";
@@ -46,6 +54,8 @@ char *obj_type(Object *obj) {
     return "OBJ_BOOL";
   case OBJ_NULL:
     return "OBJ_NULL";
+  case OBJ_RETURN:
+    return "OBJ_RETURN";
   }
   return "";
 }

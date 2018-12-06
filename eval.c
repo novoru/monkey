@@ -20,6 +20,9 @@ Object *eval_stmts(Vector *stmts) {
   
   for (int i = 0; i < stmts->len; i++) {
     result = eval((Node *)stmts->data[i]);
+
+    if (result->ty == OBJ_RETURN)
+      return (Object *)result->value;
   }
 
   return result;
@@ -114,10 +117,38 @@ Object *eval_if_expr(Node *ie) {
     return get_null_obj();
 }
 
+Object *eval_program(Node *node) {
+  Object *result;
+
+  for ( int i = 0; i < node->stmts->len; i++) {
+    Node *stmt = (Node *)node->stmts->data[i];
+    result = eval(stmt);
+
+    if (result->ty == OBJ_RETURN)
+      return (Object *)result->value;
+  }
+
+  return result;
+}
+
+Object *eval_block_stmt(Node *block) {
+  Object *result;
+
+  for ( int i = 0; i < block->stmts->len; i++) {
+    Node *stmt = (Node *)block->stmts->data[i];
+    result = eval(stmt);
+
+    if (result != NULL && result->ty == OBJ_RETURN)
+      return result;
+  }
+
+  return result;
+}
+
 Object *eval(Node *node) {
   switch (node->ty) {
   case AST_PROGRAM:
-    return eval_stmts(node->stmts);
+    return eval_program(node);
   case AST_EXPR_STMT:
     return eval(node->expr);
   case AST_INT:
@@ -125,22 +156,24 @@ Object *eval(Node *node) {
   case AST_BOOL:
     return get_bool_obj((_Bool)node->bool);
   case AST_PREF_EXPR:
-    goto pref_workaround;
-  pref_workaround:;
+    ;   // workaround
     Object *pref_right = eval(node->right);
     return eval_pref_expr(node->op, pref_right);
   case AST_INF_EXPR:
-    goto inf_workaround;
-  inf_workaround:;
+    ;   // workaround
     Object *inf_left = eval(node->left);
     Object *inf_right = eval(node->right);
     return eval_inf_expr(node->op, inf_left, inf_right);
   case AST_BLOCK_STMT:
     if (node->stmts->len > 0)
-      return eval_stmts(node->stmts);
+      return eval_block_stmt(node);
     return get_null_obj();
   case AST_IF_EXPR:
     return eval_if_expr(node);
+  case AST_RETURN:
+    ;   // workaround
+    Object *val = eval(node->ret);
+    return new_return_obj(val);
   }
   return get_null_obj();
 }

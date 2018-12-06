@@ -5,7 +5,7 @@
 #include "test.h"
 #include "util.h"
 
-Object *test_eval(char *input) {
+static Object *test_eval(char *input) {
   Lexier *l = new_lexier(input);
   Parser *p = new_parser(l);
   Node *program = parse_program(p);
@@ -13,7 +13,7 @@ Object *test_eval(char *input) {
   return eval(program);
 }
 
-_Bool test_int_obj(Object *obj, long expected) {
+static _Bool test_int_obj(Object *obj, long expected) {
   if (obj->ty != OBJ_INT) {
     printf("object is not int. got=%s\n", obj_type(obj));
     return false;
@@ -27,7 +27,7 @@ _Bool test_int_obj(Object *obj, long expected) {
   return true;
 }
 
-_Bool test_bool_obj(Object *obj, _Bool expected) {
+static _Bool test_bool_obj(Object *obj, _Bool expected) {
   if (obj->ty != OBJ_BOOL) {
     printf("object is not bool. got=%s\n", obj_type(obj->ty));
     return false;
@@ -42,7 +42,7 @@ _Bool test_bool_obj(Object *obj, _Bool expected) {
   return true;
 }
 
-_Bool test_null_obj(Object *obj) {
+static _Bool test_null_obj(Object *obj) {
   if (obj->ty != OBJ_NULL) {
     printf("object is not NULL. got=%s\n", obj_type(obj));
     return false;
@@ -56,7 +56,7 @@ typedef struct int_obj_test{
   long expected;
 } int_obj_test;
 
-int_obj_test *new_int_obj_test(char *input, long expected) {
+static int_obj_test *new_int_obj_test(char *input, long expected) {
   int_obj_test *t = malloc(sizeof(int_obj_test));
   t->input = input;
   t->expected = expected;
@@ -64,7 +64,7 @@ int_obj_test *new_int_obj_test(char *input, long expected) {
   return t;
 }
 
-void test_eval_int_expr() {
+static void test_eval_int_expr() {
   int_obj_test *tests[] = { new_int_obj_test("5", 5),
 			    new_int_obj_test("10", 10),
 			    new_int_obj_test("-5", -5),
@@ -94,7 +94,7 @@ typedef struct bool_obj_test{
   _Bool expected;
 } bool_obj_test;
 
-bool_obj_test *new_bool_obj_test(char *input, _Bool expected) {
+static bool_obj_test *new_bool_obj_test(char *input, _Bool expected) {
   bool_obj_test *t = malloc(sizeof(bool_obj_test));
   t->input = input;
   t->expected = expected;
@@ -102,7 +102,7 @@ bool_obj_test *new_bool_obj_test(char *input, _Bool expected) {
   return t;
 }
 
-void test_eval_bool_expr() {
+static void test_eval_bool_expr() {
   bool_obj_test *tests[] = { new_bool_obj_test("true",  true),
 			     new_bool_obj_test("false", false),
 			     new_bool_obj_test("1 < 2", true),
@@ -130,7 +130,7 @@ void test_eval_bool_expr() {
   }
 }
 
-void test_bang_op() {
+static void test_bang_op() {
   bool_obj_test *tests[] = { new_bool_obj_test("!true", false),
 			     new_bool_obj_test("!false", true),
 			     new_bool_obj_test("!5", false),
@@ -151,7 +151,7 @@ typedef struct if_else_test{
   int ty;
 } if_else_test;
 
-if_else_test *new_if_else_test(char *input, void *expected, int ty) {
+static if_else_test *new_if_else_test(char *input, void *expected, int ty) {
   if_else_test *t = malloc(sizeof(if_else_test));
   t->input = input;
   t->expected = expected;
@@ -180,6 +180,25 @@ static void test_if_else_expr() {
   }
 }
 
+static void test_return_stmts() {
+  typedef struct test{
+    char *input;
+    long expected;
+  } test;
+  
+  test tests[] = { {"return 10;", 10},
+		   {"return 10; 9;", 10},
+		   {"return 2 * 5; 9;", 10},
+		   {"9; return 2 * 5; 9;", 10},
+		   {"if (10 > 1) { if (10 > 1) { return 10;} return 1;}", 10}
+  };
+
+  for (int i = 0; i < LENGTH(tests); i++) {
+    Object *evaluated = test_eval(tests[i].input);
+    test_int_obj(evaluated, tests[i].expected);
+  }
+}
+
 void run_eval_test() {
   printf("=== test eval ===\n");
   printf("- int\n");
@@ -190,6 +209,8 @@ void run_eval_test() {
   test_bang_op();
   printf("- if else\n");
   test_if_else_expr();
+  printf("- return\n");
+  test_return_stmts();
   printf("OK\n");
 }
 
