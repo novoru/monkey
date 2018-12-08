@@ -51,6 +51,8 @@ char *inspect_obj(Object *obj) {
     return "NULL";
   case OBJ_RETURN:
     return inspect_obj((Object *)obj->value);
+  case OBJ_ERROR:
+    return (char *)obj->value;
   }
 
   return "";
