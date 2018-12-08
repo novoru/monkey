@@ -1,3 +1,4 @@
+#include "env.h"
 #include "eval.h"
 #include "lexier.h"
 #include "object.h"
@@ -9,8 +10,9 @@ static Object *test_eval(char *input) {
   Lexier *l = new_lexier(input);
   Parser *p = new_parser(l);
   Node *program = parse_program(p);
+  Env *env = new_env();
 
-  return eval(program);
+  return eval(program, env);
 }
 
 static _Bool test_int_obj(Object *obj, long expected) {
@@ -212,7 +214,8 @@ static void test_error_handling() {
 		   {"5; true + false; 5;", "unknown operator: OBJ_BOOL + OBJ_BOOL"},
 		   {"if (10 > 1) { true + false; }", "unknown operator: OBJ_BOOL + OBJ_BOOL"},
 		   {"if (10 > 1) { if (10 > 1) { return true + false;} return 1;}",
-		   "unknown operator: OBJ_BOOL + OBJ_BOOL"}
+		    "unknown operator: OBJ_BOOL + OBJ_BOOL"},
+		   {"foobar", "identifier not found: foobar"}
   };
 
   for (int i = 0; i < LENGTH(tests); i++) {
@@ -230,6 +233,24 @@ static void test_error_handling() {
   }
 }
 
+static void test_let_stmts() {
+  typedef struct test{
+    char *input;
+    long expected;
+  } test;
+  
+  test tests[] = { {"let a = 5; a;", 5},
+		   {"let a = 5 * 5; a;", 25},
+		   {"let a = 5; let b = a; b;", 5},
+		   {"let a = 5; let b = a; let c = a + b + 5; c;", 15}
+  };
+
+  for (int i = 0; i < LENGTH(tests); i++) {
+    Object *evaluated = test_eval(tests[i].input);
+    test_int_obj(evaluated, tests[i].expected);
+  }
+  
+}
 
 void run_eval_test() {
   printf("=== test eval ===\n");
@@ -245,6 +266,8 @@ void run_eval_test() {
   test_return_stmts();
   printf("- error\n");
   test_error_handling();
+  printf("- let\n");
+  test_let_stmts();
   printf("OK\n");
 }
 

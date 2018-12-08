@@ -17,6 +17,8 @@ void print_parse_errors(Vector *errors) {
 }
 
 void repl_start() {
+  Env *env = new_env();
+  
   while (1) {
     char *input = readline(PROMPT);
     add_history(input);
@@ -31,7 +33,7 @@ void repl_start() {
       continue;
     }
 
-    Object *evaluated = eval(program);
+    Object *evaluated = eval(program, env);
     if (evaluated != NULL)
       printf(format("%s\n", inspect_obj(evaluated)));
   }

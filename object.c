@@ -68,6 +68,8 @@ char *obj_type(Object *obj) {
     return "OBJ_NULL";
   case OBJ_RETURN:
     return "OBJ_RETURN";
+  case OBJ_ERROR:
+    return "OBJ_ERROR";
   }
   return "";
 }

@@ -9,7 +9,7 @@ static Object *get_bool_obj(_Bool bool){
   return false_obj;
 }
 
-static Object *get_null_obj() {
+Object *get_null_obj() {
   if (null_obj == NULL)
     null_obj = new_null_obj();
   return null_obj;
@@ -32,11 +32,11 @@ static _Bool is_error(Object *obj) {
   return false;
 }
 
-static Object *eval_stmts(Vector *stmts) {
+static Object *eval_stmts(Vector *stmts, Env *env) {
   Object *result;
   
   for (int i = 0; i < stmts->len; i++) {
-    result = eval((Node *)stmts->data[i]);
+    result = eval((Node *)stmts->data[i], env);
 
     if (result->ty == OBJ_RETURN)
       return (Object *)result->value;
@@ -125,26 +125,35 @@ static _Bool is_truthy(Object *obj) {
   }
 }
 
-static Object *eval_if_expr(Node *ie) {
-  Object *cond = eval(ie->cond);
+static Object *eval_if_expr(Node *ie, Env *env) {
+  Object *cond = eval(ie->cond, env);
 
   if (is_error(cond))
     return cond;
 
   if (is_truthy(cond))
-    return eval(ie->conseq);
+    return eval(ie->conseq, env);
   else if (ie->alter != NULL)
-    return eval(ie->alter);
+    return eval(ie->alter, env);
   else
     return get_null_obj();
 }
 
-static Object *eval_program(Node *node) {
+static Object *eval_ident(Node *node, Env *env) {
+  Object *val = (Object *)get_env(env, node->name);
+
+  if (val == null_obj)
+    return new_error("identifier not found: %s", node->name);
+
+  return val;
+}
+
+static Object *eval_program(Node *node, Env *env) {
   Object *result;
 
   for ( int i = 0; i < node->stmts->len; i++) {
     Node *stmt = (Node *)node->stmts->data[i];
-    result = eval(stmt);
+    result = eval(stmt, env);
 
     if (result->ty == OBJ_RETURN)
       return (Object *)result->value;
@@ -155,12 +164,12 @@ static Object *eval_program(Node *node) {
   return result;
 }
 
-static Object *eval_block_stmt(Node *block) {
+static Object *eval_block_stmt(Node *block, Env *env) {
   Object *result;
 
   for ( int i = 0; i < block->stmts->len; i++) {
     Node *stmt = (Node *)block->stmts->data[i];
-    result = eval(stmt);
+    result = eval(stmt, env);
 
     if (result != NULL && (result->ty == OBJ_RETURN || result->ty == OBJ_ERROR))
       return result;
@@ -169,43 +178,51 @@ static Object *eval_block_stmt(Node *block) {
   return result;
 }
 
-Object *eval(Node *node) {
+Object *eval(Node *node, Env *env) {
   switch (node->ty) {
   case AST_PROGRAM:
-    return eval_program(node);
+    return eval_program(node, env);
   case AST_EXPR_STMT:
-    return eval(node->expr);
+    return eval(node->expr, env);
   case AST_INT:
     return new_int_obj(node->value);
   case AST_BOOL:
     return get_bool_obj((_Bool)node->bool);
   case AST_PREF_EXPR:
     ;   // workaround
-    Object *pref_right = eval(node->right);
+    Object *pref_right = eval(node->right, env);
     if (is_error(pref_right))
       return pref_right;
     return eval_pref_expr(node->op, pref_right);
   case AST_INF_EXPR:
     ;   // workaround
-    Object *inf_left = eval(node->left);
+    Object *inf_left = eval(node->left, env);
     if (is_error(inf_left))
       return inf_left;
-    Object *inf_right = eval(node->right);
+    Object *inf_right = eval(node->right, env);
     if (is_error(inf_right))
       return inf_right;
     return eval_inf_expr(node->op, inf_left, inf_right);
   case AST_BLOCK_STMT:
     if (node->stmts->len > 0)
-      return eval_block_stmt(node);
+      return eval_block_stmt(node, env);
     return get_null_obj();
   case AST_IF_EXPR:
-    return eval_if_expr(node);
+    return eval_if_expr(node, env);
   case AST_RETURN:
     ;   // workaround
-    Object *val = eval(node->ret);
-    if (is_error(val))
-      return val;
-    return new_return_obj(val);
+    Object *ret_val = eval(node->ret, env);
+    if (is_error(ret_val))
+      return ret_val;
+    return new_return_obj(ret_val);
+  case AST_LET:
+    ;
+    Object *let_val = eval(node->data, env);
+    if (is_error(let_val))
+      return let_val;
+    return set_env(env, node->ident->name, let_val);
+  case AST_IDENT:
+    return eval_ident(node, env);
   }
   return get_null_obj();
 }
