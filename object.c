@@ -41,6 +41,16 @@ Object *new_error_obj(char *msg) {
   return o;
 }
 
+Object *new_func_obj(Vector *params, Env *env, Node *body) {
+  Object *o = malloc(sizeof(Object));
+  o->ty = OBJ_FUNCTION;
+  o->params = params;
+  o->env = env;
+  o->body = body;
+
+  return o;
+}
+
 char *inspect_obj(Object *obj) {
   switch (obj->ty) {
   case OBJ_INT:
@@ -53,6 +63,17 @@ char *inspect_obj(Object *obj) {
     return inspect_obj((Object *)obj->value);
   case OBJ_ERROR:
     return (char *)obj->value;
+  case OBJ_FUNCTION:
+    ;    // workaround
+    char *str = format("fn(");
+    for (int i = 0; i < obj->params->len; i++) {
+      Node *param = (Node *)obj->params->data[i];
+      if (i == 0)
+	str = format("%s%s", str, param->name);
+      else
+	str = format("%s, %s", str, param->name);
+    }
+    return format("%s) {\n%s\n}", str, node_to_str(obj->body));
   }
 
   return "";
@@ -70,6 +91,8 @@ char *obj_type(Object *obj) {
     return "OBJ_RETURN";
   case OBJ_ERROR:
     return "OBJ_ERROR";
+  case OBJ_FUNCTION:
+    return "OBJ_FUNCTION";
   }
   return "";
 }

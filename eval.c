@@ -142,7 +142,7 @@ static Object *eval_if_expr(Node *ie, Env *env) {
 static Object *eval_ident(Node *node, Env *env) {
   Object *val = (Object *)get_env(env, node->name);
 
-  if (val == null_obj)
+  if (val == NULL)
     return new_error("identifier not found: %s", node->name);
 
   return val;
@@ -176,6 +176,51 @@ static Object *eval_block_stmt(Node *block, Env *env) {
   }
 
   return result;
+}
+
+static Vector *eval_exprs(Vector *args, Env *env) {
+  Vector *result = new_vector();
+
+  for (int i = 0; i < args->len; i++) {
+    Object *evaluated = eval((Node *)args->data[i], env);
+    if (is_error(evaluated)) {
+      result = new_vector();
+      vec_push(result, evaluated);
+      return result;
+    }
+    vec_push(result, evaluated);
+  }
+
+  return result;
+}
+
+static Object *unwrap_ret_val(Object *obj) {
+  if (obj->ty == OBJ_RETURN)
+    return (Object *)obj->value;
+
+  return obj;
+}
+
+static Env *extend_func_env(Object *fn, Vector *args) {
+  Env *env = new_enclosed_env(fn->env);
+
+  for (int i = 0; i < args->len; i++) {
+    Node *param = (Node *)fn->params->data[i];
+    Object *arg = (Object *)args->data[i];
+    set_env(env, (char *)param->name, arg);
+  }
+
+  return env;
+}
+
+static Object *apply_func(Object *fn, Vector *args) {
+  if (fn->ty != OBJ_FUNCTION)
+    return new_error_obj(format("not a function: %s", obj_type(fn)));
+
+  Env *extended_env = extend_func_env(fn, args);
+  Object *evaluated = eval(fn->body, extended_env);
+
+  return unwrap_ret_val(evaluated);
 }
 
 Object *eval(Node *node, Env *env) {
@@ -223,6 +268,20 @@ Object *eval(Node *node, Env *env) {
     return set_env(env, node->ident->name, let_val);
   case AST_IDENT:
     return eval_ident(node, env);
+  case AST_FUNCTION:
+    ;   // workaround
+    Vector *params = node->params;
+    Node *body = node->body;
+    return new_func_obj(params, env, body);
+  case AST_CALL_EXPR:
+    ;   // workaround
+    Object *func = eval(node->func, env);
+    if (is_error(func))
+      return func;
+    Vector *args = eval_exprs(node->args, env);
+    if (args->len == 1 && is_error((Object *)args->data[0]))
+      return (Object *)args->data[0];
+    return apply_func(func, args);
   }
   return get_null_obj();
 }

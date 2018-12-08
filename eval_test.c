@@ -18,6 +18,8 @@ static Object *test_eval(char *input) {
 static _Bool test_int_obj(Object *obj, long expected) {
   if (obj->ty != OBJ_INT) {
     printf("object is not int. got=%s\n", obj_type(obj));
+    if (obj->ty == OBJ_ERROR)
+      printf("%s\n", inspect_obj(obj));
     return false;
   }
 
@@ -230,6 +232,7 @@ static void test_error_handling() {
       printf("wrong error message. expected=%s, got=%s\n",
 	     tests[i].expected, (char *)evaluated->value);
     }
+
   }
 }
 
@@ -252,6 +255,50 @@ static void test_let_stmts() {
   
 }
 
+static void test_func_obj() {
+  char *input = "fn(x) { x + 2; }";
+
+  Object *evaluated = test_eval(input);
+
+  if (evaluated->ty != OBJ_FUNCTION)
+    error("object is no Function. got=%s\n", obj_type(evaluated));
+
+  if (evaluated->params->len != 1)
+    error("function has wrong parameters.\n");
+
+  Node *param = evaluated->params->data[0];
+  
+  if (strcmp(param->name, "x"))
+    error("parameter is not 'x'. got=""%s", param->name);
+
+  char *expected = "(x + 2)";
+
+  if (strcmp(node_to_str(evaluated->body), expected))
+    error("body is not %s. got=%s\n", expected, node_to_str(evaluated->body));
+  
+}
+
+static void test_func_app() {
+  typedef struct test{
+    char *input;
+    long expected;
+  } test;
+  
+  test tests[] = { {"let identify = fn(x) { x; }; identify(5);", 5},
+		   {"let identify = fn(x) { return x; }; identify(5)", 5},
+		   {"let double = fn(x) { x * 2; }; double(5);", 10},
+		   {"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
+		   {"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
+		   {"fn(x) { x;}(5)", 5}
+
+  };
+
+  for (int i = 0; i < LENGTH(tests); i++) {
+    test_int_obj(test_eval(tests[i].input), tests[i].expected);
+  }
+  
+}
+
 void run_eval_test() {
   printf("=== test eval ===\n");
   printf("- int\n");
@@ -268,6 +315,10 @@ void run_eval_test() {
   test_error_handling();
   printf("- let\n");
   test_let_stmts();
+  printf("- function\n");
+  test_func_obj();
+  printf("- function app\n");
+  test_func_app();
   printf("OK\n");
 }
 

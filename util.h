@@ -79,5 +79,4 @@ void *map_get(Map *map, char *key);
 void map_del(Map *map);
 
 
-
 #endif

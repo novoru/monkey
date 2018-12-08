@@ -213,13 +213,14 @@ char *node_to_str(Node *node) {
     }
     return str;
   case AST_BLOCK_STMT:
-    str = format("{");
     for (int i = 0; i < node->stmts->len; i++) {
-      char *tmp = (char *)node_to_str(node->stmts->data[i]);
-      str = format("%s %s", str, tmp);
+      if (i == 0)
+	str = (char *)node_to_str(node->stmts->data[i]);
+      else {
+	char *tmp = (char *)node_to_str(node->stmts->data[i]);
+	str = format("%s %s", str, tmp);
+      }
     }
-    str = format("%s %s", str, "}");
-    
     return str;
   case AST_FUNCTION:
     goto workaround;
