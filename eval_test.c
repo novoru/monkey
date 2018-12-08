@@ -299,6 +299,17 @@ static void test_func_app() {
   
 }
 
+void test_closures() {
+  char *input = "            \
+let newAdder = fn(x) {	     \
+  fn(y) { x + y};	     \
+};			     \
+let addTwo = newAdder(2);    \
+addTwo(2);		     \
+";
+  test_int_obj(test_eval(input), 4);
+}
+
 void run_eval_test() {
   printf("=== test eval ===\n");
   printf("- int\n");
@@ -319,6 +330,8 @@ void run_eval_test() {
   test_func_obj();
   printf("- function app\n");
   test_func_app();
+  printf("- closure\n");
+  test_closures();
   printf("OK\n");
 }
 
