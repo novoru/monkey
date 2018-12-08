@@ -29,6 +29,16 @@ Object *new_return_obj(Object *value) {
   Object *o = malloc(sizeof(Object));
   o->ty = OBJ_RETURN;
   o->value = (void *)value;
+
+  return o;
+}
+
+Object *new_error_obj(char *msg) {
+  Object *o = malloc(sizeof(Object));
+  o->ty = OBJ_ERROR;
+  o->value = (void *)msg;
+  
+  return o;
 }
 
 char *inspect_obj(Object *obj) {

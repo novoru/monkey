@@ -29,7 +29,7 @@ static _Bool test_int_obj(Object *obj, long expected) {
 
 static _Bool test_bool_obj(Object *obj, _Bool expected) {
   if (obj->ty != OBJ_BOOL) {
-    printf("object is not bool. got=%s\n", obj_type(obj->ty));
+    printf("object is not bool. got=%s\n", obj_type(obj));
     return false;
   }
 
@@ -199,6 +199,38 @@ static void test_return_stmts() {
   }
 }
 
+static void test_error_handling() {
+  typedef struct test{
+    char *input;
+    char *expected;
+  } test;
+  
+  test tests[] = { {"5 + true;", "type mismatch: OBJ_INT + OBJ_BOOL"},
+		   {"5 + true; 5;", "type mismatch: OBJ_INT + OBJ_BOOL"},
+		   {"-true", "unknown operator: -OBJ_BOOL"},
+		   {"true + false;", "unknown operator: OBJ_BOOL + OBJ_BOOL"},
+		   {"5; true + false; 5;", "unknown operator: OBJ_BOOL + OBJ_BOOL"},
+		   {"if (10 > 1) { true + false; }", "unknown operator: OBJ_BOOL + OBJ_BOOL"},
+		   {"if (10 > 1) { if (10 > 1) { return true + false;} return 1;}",
+		   "unknown operator: OBJ_BOOL + OBJ_BOOL"}
+  };
+
+  for (int i = 0; i < LENGTH(tests); i++) {
+    Object *evaluated = test_eval(tests[i].input);
+
+    if (evaluated->ty != OBJ_ERROR) {
+      printf("no error object returned. got=%s\n", obj_type(evaluated));
+      continue;
+    }
+
+    if (strcmp((char *)evaluated->value, tests[i].expected)) {
+      printf("wrong error message. expected=%s, got=%s\n",
+	     tests[i].expected, (char *)evaluated->value);
+    }
+  }
+}
+
+
 void run_eval_test() {
   printf("=== test eval ===\n");
   printf("- int\n");
@@ -211,6 +243,8 @@ void run_eval_test() {
   test_if_else_expr();
   printf("- return\n");
   test_return_stmts();
+  printf("- error\n");
+  test_error_handling();
   printf("OK\n");
 }
 

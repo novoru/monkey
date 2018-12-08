@@ -1,6 +1,6 @@
 #include "eval.h"
 
-Object *get_bool_obj(_Bool bool){
+static Object *get_bool_obj(_Bool bool){
   if (bool) {
     if(true_obj == NULL) true_obj = new_bool_obj(true);
     return true_obj;
@@ -9,13 +9,30 @@ Object *get_bool_obj(_Bool bool){
   return false_obj;
 }
 
-Object *get_null_obj() {
+static Object *get_null_obj() {
   if (null_obj == NULL)
     null_obj = new_null_obj();
   return null_obj;
 }
 
-Object *eval_stmts(Vector *stmts) {
+static Object *new_error(char *fmt, ...) {
+  char *buf[2048];
+  va_list ap;
+  va_start(ap, fmt);
+  vsnprintf(buf, sizeof(buf), fmt, ap);
+  va_end(ap);
+
+  return new_error_obj(strdup(buf));
+}
+
+static _Bool is_error(Object *obj) {
+  if (obj != NULL)
+    return obj->ty == OBJ_ERROR;
+
+  return false;
+}
+
+static Object *eval_stmts(Vector *stmts) {
   Object *result;
   
   for (int i = 0; i < stmts->len; i++) {
@@ -28,7 +45,7 @@ Object *eval_stmts(Vector *stmts) {
   return result;
 }
 
-Object *eval_bang_op_expr(Object *right) {
+static Object *eval_bang_op_expr(Object *right) {
   switch (right->ty) {
   case OBJ_BOOL:
     if((_Bool)right->value)
@@ -42,25 +59,25 @@ Object *eval_bang_op_expr(Object *right) {
   }
 }
 
-Object *eval_minus_pref_expr(Object *right) {
+static Object *eval_minus_pref_expr(Object *right) {
   if (right->ty != OBJ_INT)
-    return get_null_obj();
+    return new_error("unknown operator: -%s", obj_type(right));
 
   long value = (long)right->value;
 
   return new_int_obj(-value);
 }
 
-Object *eval_pref_expr(char *op, Object *right) {
+static Object *eval_pref_expr(char *op, Object *right) {
   if (!strcmp(op, "!"))
     return eval_bang_op_expr(right);
   else if (!strcmp(op, "-"))
     return eval_minus_pref_expr(right);
   else
-    return get_null_obj();
+    return new_error("unkown operator: %s%s", op, obj_type(right));
 }
 
-Object *eval_int_inf_expr(char *op, Object *left, Object *right) {
+static Object *eval_int_inf_expr(char *op, Object *left, Object *right) {
   long lval = (long)left->value;
   long rval = (long)right->value;
 
@@ -81,21 +98,23 @@ Object *eval_int_inf_expr(char *op, Object *left, Object *right) {
   else if(!strcmp(op, "!="))
     return get_bool_obj(lval != rval);
   else
-    return get_null_obj();
+    return new_error("unknown operator: %s %s %s", obj_type(left), op, obj_type(right));
   
 }
 
-Object *eval_inf_expr(char *op, Object *left, Object *right) {
+static Object *eval_inf_expr(char *op, Object *left, Object *right) {
   if (left->ty == OBJ_INT && right->ty == OBJ_INT)
     return eval_int_inf_expr(op, left, right);
   else if (!strcmp(op, "=="))
     return get_bool_obj((_Bool)left->value == (_Bool)right->value);
   else if (!strcmp(op, "!="))
     return get_bool_obj((_Bool)left->value != (_Bool)right->value);
-  return get_null_obj();
+  else if(left->ty != right->ty)
+    return new_error("type mismatch: %s %s %s", obj_type(left), op, obj_type(right));
+  return new_error("unknown operator: %s %s %s", obj_type(left), op, obj_type(right));
 }
 
-_Bool is_truthy(Object *obj) {
+static _Bool is_truthy(Object *obj) {
   switch (obj->ty) {
   case OBJ_NULL:
     return false;
@@ -106,8 +125,11 @@ _Bool is_truthy(Object *obj) {
   }
 }
 
-Object *eval_if_expr(Node *ie) {
+static Object *eval_if_expr(Node *ie) {
   Object *cond = eval(ie->cond);
+
+  if (is_error(cond))
+    return cond;
 
   if (is_truthy(cond))
     return eval(ie->conseq);
@@ -117,7 +139,7 @@ Object *eval_if_expr(Node *ie) {
     return get_null_obj();
 }
 
-Object *eval_program(Node *node) {
+static Object *eval_program(Node *node) {
   Object *result;
 
   for ( int i = 0; i < node->stmts->len; i++) {
@@ -126,19 +148,21 @@ Object *eval_program(Node *node) {
 
     if (result->ty == OBJ_RETURN)
       return (Object *)result->value;
+    else if(result->ty == OBJ_ERROR)
+      return result;
   }
 
   return result;
 }
 
-Object *eval_block_stmt(Node *block) {
+static Object *eval_block_stmt(Node *block) {
   Object *result;
 
   for ( int i = 0; i < block->stmts->len; i++) {
     Node *stmt = (Node *)block->stmts->data[i];
     result = eval(stmt);
 
-    if (result != NULL && result->ty == OBJ_RETURN)
+    if (result != NULL && (result->ty == OBJ_RETURN || result->ty == OBJ_ERROR))
       return result;
   }
 
@@ -158,11 +182,17 @@ Object *eval(Node *node) {
   case AST_PREF_EXPR:
     ;   // workaround
     Object *pref_right = eval(node->right);
+    if (is_error(pref_right))
+      return pref_right;
     return eval_pref_expr(node->op, pref_right);
   case AST_INF_EXPR:
     ;   // workaround
     Object *inf_left = eval(node->left);
+    if (is_error(inf_left))
+      return inf_left;
     Object *inf_right = eval(node->right);
+    if (is_error(inf_right))
+      return inf_right;
     return eval_inf_expr(node->op, inf_left, inf_right);
   case AST_BLOCK_STMT:
     if (node->stmts->len > 0)
@@ -173,6 +203,8 @@ Object *eval(Node *node) {
   case AST_RETURN:
     ;   // workaround
     Object *val = eval(node->ret);
+    if (is_error(val))
+      return val;
     return new_return_obj(val);
   }
   return get_null_obj();

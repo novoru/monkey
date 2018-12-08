@@ -9,6 +9,7 @@ enum {
       OBJ_BOOL,
       OBJ_NULL,
       OBJ_RETURN,
+      OBJ_ERROR,
 };
 
 typedef struct Object{
@@ -24,6 +25,7 @@ Object *new_int_obj(long value);
 Object *new_bool_obj(_Bool value);
 Object *new_null_obj();
 Object *new_return_obj(Object *obj);
+Object *new_error_obj(char *msg);
 char *inspect_obj(Object *obj);
 char *obj_type(Object *obj);
 
